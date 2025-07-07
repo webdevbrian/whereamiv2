@@ -157,7 +157,7 @@ const generateClueFromVisionData = (visionResponse: any): string => {
 };
 
 const generateRegionalGuesses = (features: any): string => {
-  const guesses: Array<{ region: string; confidence: 'HIGH' | 'MEDIUM' | 'LOW'; reasoning: string }> = [];
+  const guesses: Array<{ region: string; confidence: 'HIGH' | 'MEDIUM'; reasoning: string }> = [];
   
   // Language-based guesses (highest confidence)
   if (features.languages.size > 0) {
@@ -246,7 +246,7 @@ const generateRegionalGuesses = (features: any): string => {
   }
   
   // Sort by confidence and take top 3
-  const confidenceOrder = { 'HIGH': 3, 'MEDIUM': 2 };
+  const confidenceOrder: { [key in 'HIGH' | 'MEDIUM']: number } = { 'HIGH': 3, 'MEDIUM': 2 };
   const sortedGuesses = guesses
     .sort((a, b) => confidenceOrder[b.confidence] - confidenceOrder[a.confidence])
     .slice(0, 3);
