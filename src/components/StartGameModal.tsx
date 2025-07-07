@@ -22,11 +22,12 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
           Where Am I?
         </h1>
         <div style={{ 
-          color: 'rgba(255,255,255,0.9)', 
+          color: 'white', 
           fontSize: '1.1rem', 
           marginBottom: '2rem',
-          fontWeight: '300',
-          textAlign: 'center'
+          fontWeight: '400',
+          textAlign: 'center',
+          textShadow: '0 1px 3px rgba(0,0,0,0.5)'
         }}>
           <p style={{ margin: '0 0 0.5rem 0' }}>
             A project by{' '}
@@ -57,8 +58,9 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
           <p style={{ 
             margin: 0, 
             fontSize: '0.9rem', 
-            color: 'rgba(255,255,255,0.7)',
-            fontStyle: 'italic'
+            color: 'rgba(255,255,255,0.95)',
+            fontStyle: 'italic',
+            textShadow: '0 1px 2px rgba(0,0,0,0.4)'
           }}>
             Built with React, TypeScript, Google Maps API & Vite
           </p>
