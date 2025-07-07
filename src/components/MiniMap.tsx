@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 
 interface MiniMapProps {
   onMapClick: (latLng: google.maps.LatLng) => void;
   guessLocation: google.maps.LatLng | null;
 }
 
-const MiniMap: React.FC<MiniMapProps> = ({ onMapClick, guessLocation }) => {
+const MiniMap: React.FC<MiniMapProps> = memo(({ onMapClick, guessLocation }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
@@ -70,6 +70,8 @@ const MiniMap: React.FC<MiniMapProps> = ({ onMapClick, guessLocation }) => {
       }}
     />
   );
-};
+});
+
+MiniMap.displayName = 'MiniMap';
 
 export default MiniMap;

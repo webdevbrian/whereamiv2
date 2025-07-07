@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { GameState, GameRound } from './types/game';
 import { loadGoogleMapsScript } from './utils/googleMaps';
 import { COORDINATES } from './data/coordinates';
@@ -151,6 +151,8 @@ function App() {
     setGuessLocation(latLng);
   };
 
+  // Memoize the map click handler to prevent unnecessary re-renders
+  const memoizedMapClick = useMemo(() => handleMapClick, []);
   if (!mapsLoaded) {
     return (
       <div className="loading-screen">
@@ -169,7 +171,7 @@ function App() {
       <StreetView location={currentLocation} />
       
       <MiniMap 
-        onMapClick={handleMapClick}
+        onMapClick={memoizedMapClick}
         guessLocation={guessLocation}
       />
       
