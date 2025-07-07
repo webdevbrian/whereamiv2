@@ -23,6 +23,13 @@ const CluePanel: React.FC<CluePanelProps> = ({
     isLoading: false
   });
 
+  // Reset clue data when canRequestClue becomes true (new round)
+  useEffect(() => {
+    if (canRequestClue && clueData.text) {
+      setClueData({ text: '', confidence: 0, isLoading: false });
+    }
+  }, [canRequestClue]);
+
   const requestClue = async () => {
     if (!panorama || !canRequestClue) return;
 
