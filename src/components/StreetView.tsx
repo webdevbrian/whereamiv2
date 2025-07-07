@@ -14,9 +14,8 @@ const StreetView: React.FC<StreetViewProps> = ({ location }) => {
     const streetViewService = new google.maps.StreetViewService();
     const STREETVIEW_MAX_DISTANCE = 100;
 
-    streetViewService.getPanoramaByLocation(
-      location,
-      STREETVIEW_MAX_DISTANCE,
+    streetViewService.getPanorama(
+      { location: location, radius: STREETVIEW_MAX_DISTANCE },
       (_data: google.maps.StreetViewPanoramaData | null, status: google.maps.StreetViewStatus) => {
         if (status === google.maps.StreetViewStatus.OK && streetViewRef.current) {
           const panoramaOptions: google.maps.StreetViewPanoramaOptions = {
@@ -25,7 +24,6 @@ const StreetView: React.FC<StreetViewProps> = ({ location }) => {
             linksControl: false,
             pov: {
               heading: 270,
-              zoom: 0,
               pitch: -10
             },
             visible: true,
