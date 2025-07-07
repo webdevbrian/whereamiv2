@@ -17,7 +17,7 @@ const StreetView: React.FC<StreetViewProps> = ({ location }) => {
     streetViewService.getPanoramaByLocation(
       location,
       STREETVIEW_MAX_DISTANCE,
-      (data: google.maps.StreetViewPanoramaData | null, status: google.maps.StreetViewStatus) => {
+      (_data: google.maps.StreetViewPanoramaData | null, status: google.maps.StreetViewStatus) => {
         if (status === google.maps.StreetViewStatus.OK && streetViewRef.current) {
           const panoramaOptions: google.maps.StreetViewPanoramaOptions = {
             position: location,

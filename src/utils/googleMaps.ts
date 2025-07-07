@@ -8,7 +8,7 @@ export const loadGoogleMapsScript = (): Promise<void> => {
   }
 
   // If Google Maps is already loaded, return a resolved promise
-  if (window.google && window.google.maps) {
+  if ((window as any).google && (window as any).google.maps) {
     scriptPromise = Promise.resolve();
     return scriptPromise;
   }
@@ -25,7 +25,7 @@ export const loadGoogleMapsScript = (): Promise<void> => {
     const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
     if (existingScript) {
       // Script already exists, wait for it to load
-      if (window.google && window.google.maps) {
+      if ((window as any).google && (window as any).google.maps) {
         resolve();
       } else {
         existingScript.addEventListener('load', () => resolve());
