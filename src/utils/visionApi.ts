@@ -176,7 +176,10 @@ const generateEnhancedClueFromVisionData = (visionResponses: any[]): string => {
     // Process document text detection (better for signs and text)
     if (response.fullTextAnnotation && response.fullTextAnnotation.text) {
       const fullText = response.fullTextAnnotation.text.toLowerCase();
-      combinedFeatures.documentText.push(fullText);
+      const filteredText = filterGoogleCopyright(fullText);
+      if (filteredText) {
+        combinedFeatures.documentText.push(filteredText);
+      }
       
       // Extract language from document text
       if (response.fullTextAnnotation.pages && response.fullTextAnnotation.pages[0]) {
@@ -198,7 +201,10 @@ const generateEnhancedClueFromVisionData = (visionResponses: any[]): string => {
           combinedFeatures.languages.add(text.locale);
         }
         if (text.description && text.description.length > 0) {
-          combinedFeatures.textContent.push(text.description.toLowerCase());
+          const filteredText = filterGoogleCopyright(text.description.toLowerCase());
+          if (filteredText) {
+            combinedFeatures.textContent.push(filteredText);
+          }
         }
       });
     }
@@ -248,6 +254,67 @@ const generateEnhancedClueFromVisionData = (visionResponses: any[]): string => {
   });
 
   return generateAdvancedRegionalGuesses(combinedFeatures);
+};
+
+const filterGoogleCopyright = (text: string): string | null => {
+  // Remove Google copyright and watermark text
+  const googleTerms = [
+    'google',
+    '© google',
+    'google 2022',
+    'google 2023',
+    'google 2024',
+    'google 2025',
+    '©',
+    'copyright',
+    'street view',
+    'streetview',
+    'maps',
+    'imagery',
+    'satellite',
+    'data'
+  ];
+  
+  let filteredText = text.trim();
+  
+  // Remove lines that are just copyright info
+  const lines = filteredText.split('\n');
+  const filteredLines = lines.filter(line => {
+    const cleanLine = line.trim().toLowerCase();
+    
+    // Skip empty lines
+    if (cleanLine.length === 0) return false;
+    
+    // Skip lines that are just years
+    if (/^\d{4}$/.test(cleanLine)) return false;
+    
+    // Skip lines that contain only Google copyright terms
+    const isGoogleCopyright = googleTerms.some(term => {
+      return cleanLine === term || 
+             cleanLine.startsWith(term + ' ') || 
+             cleanLine.endsWith(' ' + term) ||
+             (cleanLine.length <= 15 && cleanLine.includes(term));
+    });
+    
+    return !isGoogleCopyright;
+  });
+  
+  filteredText = filteredLines.join(' ').trim();
+  
+  // Additional cleanup for remaining Google terms in longer text
+  googleTerms.forEach(term => {
+    const regex = new RegExp(`\\b${term}\\b`, 'gi');
+    filteredText = filteredText.replace(regex, '').trim();
+  });
+  
+  // Clean up extra spaces and punctuation
+  filteredText = filteredText
+    .replace(/\s+/g, ' ')
+    .replace(/^[,\s]+|[,\s]+$/g, '')
+    .trim();
+  
+  // Return null if the text is too short or empty after filtering
+  return filteredText.length > 2 ? filteredText : null;
 };
 
 const generateAdvancedRegionalGuesses = (features: any): string => {
