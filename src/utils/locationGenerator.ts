@@ -41,7 +41,7 @@ export const generateRandomLocation = (): google.maps.LatLng => {
 // Find a valid Street View location near the random coordinates
 export const findValidStreetViewLocation = (
   initialLocation: google.maps.LatLng,
-  maxAttempts: number = 5
+  maxAttempts: number = 10
 ): Promise<google.maps.LatLng> => {
   return new Promise((resolve, reject) => {
     const streetViewService = new google.maps.StreetViewService();
@@ -53,7 +53,7 @@ export const findValidStreetViewLocation = (
       streetViewService.getPanorama(
         { 
           location: location, 
-          radius: 50000, // 50km radius
+          radius: 100000, // 100km radius - much larger search area
           source: google.maps.StreetViewSource.OUTDOOR
         },
         (data: google.maps.StreetViewPanoramaData | null, status: google.maps.StreetViewStatus) => {
@@ -62,9 +62,10 @@ export const findValidStreetViewLocation = (
           } else if (attempts < maxAttempts) {
             // Try a new random location
             const newLocation = generateRandomLocation();
+            console.log(`Attempt ${attempts}: Trying new location at ${newLocation.lat()}, ${newLocation.lng()}`);
             tryLocation(newLocation);
           } else {
-            reject(new Error('Could not find valid Street View location after maximum attempts'));
+            reject(new Error(`Could not find valid Street View location after ${maxAttempts} attempts`));
           }
         }
       );

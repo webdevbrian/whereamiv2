@@ -1,5 +1,12 @@
 import { VisionApiResponse } from '../types/clue';
 
+interface LocationGuess {
+  location: string;
+  region?: string;
+  confidence: 'VERY HIGH' | 'HIGH' | 'MEDIUM' | 'LOW';
+  reasoning: string;
+}
+
 export const analyzeStreetViewImage = async (panorama: google.maps.StreetViewPanorama): Promise<string> => {
   const apiKey = import.meta.env.VITE_GOOGLE_CLOUD_API_KEY;
   
@@ -8,8 +15,8 @@ export const analyzeStreetViewImage = async (panorama: google.maps.StreetViewPan
   }
 
   try {
-    // Capture multiple high-quality images from different angles
-    const images = await captureMultipleStreetViewImages(panorama);
+    // Capture the exact current view at multiple resolutions
+    const images = await captureCurrentViewMultipleResolutions(panorama);
     
     // Analyze all images and combine results
     const allResults = await Promise.all(
@@ -21,7 +28,8 @@ export const analyzeStreetViewImage = async (panorama: google.maps.StreetViewPan
                 content: imageData.split(',')[1] // Remove data:image/jpeg;base64, prefix
               },
               features: [
-                { type: 'TEXT_DETECTION', maxResults: 15 },
+                { type: 'DOCUMENT_TEXT_DETECTION', maxResults: 20 }, // Better for text in images
+                { type: 'TEXT_DETECTION', maxResults: 20 },
                 { type: 'LABEL_DETECTION', maxResults: 15 },
                 { type: 'LANDMARK_DETECTION', maxResults: 10 },
                 { type: 'LOGO_DETECTION', maxResults: 10 },
@@ -74,7 +82,7 @@ export const analyzeStreetViewImage = async (panorama: google.maps.StreetViewPan
   }
 };
 
-const captureMultipleStreetViewImages = async (panorama: google.maps.StreetViewPanorama): Promise<string[]> => {
+const captureCurrentViewMultipleResolutions = async (panorama: google.maps.StreetViewPanorama): Promise<string[]> => {
   try {
     const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     
@@ -90,20 +98,20 @@ const captureMultipleStreetViewImages = async (panorama: google.maps.StreetViewP
       throw new Error('Could not get panorama position');
     }
 
-    // Define multiple angles to capture more context
-    const captureAngles = [
-      { heading: currentPov.heading || 0, pitch: currentPov.pitch || 0, fov: 120 }, // Current view with wider FOV
-      { heading: (currentPov.heading || 0) + 90, pitch: 0, fov: 90 }, // Right view
-      { heading: (currentPov.heading || 0) - 90, pitch: 0, fov: 90 }, // Left view
+    // Capture the exact current view at different resolutions for better text detection
+    const resolutions = [
+      { size: '1024x1024', fov: 90 },  // High resolution, normal FOV
+      { size: '800x800', fov: 60 },    // Medium resolution, narrow FOV for text
+      { size: '640x640', fov: 45 }     // Lower resolution, very narrow FOV for signs
     ];
 
-    const imagePromises = captureAngles.map(async (angle) => {
+    const imagePromises = resolutions.map(async (config) => {
       const params = new URLSearchParams({
-        size: '1024x1024', // Higher resolution for better text detection
+        size: config.size,
         location: `${position.lat()},${position.lng()}`,
-        heading: angle.heading.toString(),
-        pitch: angle.pitch.toString(),
-        fov: angle.fov.toString(),
+        heading: (currentPov.heading || 0).toString(),
+        pitch: (currentPov.pitch || 0).toString(),
+        fov: config.fov.toString(),
         key: mapsApiKey
       });
 
@@ -113,7 +121,7 @@ const captureMultipleStreetViewImages = async (panorama: google.maps.StreetViewP
         const response = await fetch(staticUrl);
         
         if (!response.ok) {
-          console.warn(`Street View Static API failed for angle ${angle.heading}: ${response.statusText}`);
+          console.warn(`Street View Static API failed for resolution ${config.size}: ${response.statusText}`);
           return null;
         }
 
@@ -132,7 +140,7 @@ const captureMultipleStreetViewImages = async (panorama: google.maps.StreetViewP
           reader.readAsDataURL(blob);
         });
       } catch (error) {
-        console.warn(`Failed to capture image at angle ${angle.heading}:`, error);
+        console.warn(`Failed to capture image at resolution ${config.size}:`, error);
         return null;
       }
     });
@@ -159,69 +167,91 @@ const generateEnhancedClueFromVisionData = (visionResponses: any[]): string => {
     labels: [] as string[],
     logos: [] as any[],
     textContent: [] as string[],
-    objects: [] as string[]
+    objects: [] as string[],
+    documentText: [] as string[]
   };
   
   // Combine all responses
   visionResponses.forEach(response => {
-    // Process text detection with lower confidence threshold
+    // Process document text detection (better for signs and text)
+    if (response.fullTextAnnotation && response.fullTextAnnotation.text) {
+      const fullText = response.fullTextAnnotation.text.toLowerCase();
+      combinedFeatures.documentText.push(fullText);
+      
+      // Extract language from document text
+      if (response.fullTextAnnotation.pages && response.fullTextAnnotation.pages[0]) {
+        const page = response.fullTextAnnotation.pages[0];
+        if (page.property && page.property.detectedLanguages) {
+          page.property.detectedLanguages.forEach((lang: any) => {
+            combinedFeatures.languages.add(lang.languageCode);
+          });
+        }
+      }
+    }
+
+    // Process regular text detection with very low confidence threshold
     if (response.textAnnotations && response.textAnnotations.length > 0) {
-      const texts = response.textAnnotations.slice(1, 8); // More text samples
+      const texts = response.textAnnotations.slice(1, 10); // More text samples
       
       texts.forEach((text: any) => {
         if (text.locale) {
           combinedFeatures.languages.add(text.locale);
         }
-        if (text.description && text.description.length > 1) {
+        if (text.description && text.description.length > 0) {
           combinedFeatures.textContent.push(text.description.toLowerCase());
         }
       });
     }
 
-    // Process landmarks with lower threshold
+    // Process landmarks with very low threshold
     if (response.landmarkAnnotations && response.landmarkAnnotations.length > 0) {
-      const landmarks = response.landmarkAnnotations.filter((landmark: any) => landmark.score > 0.3);
+      const landmarks = response.landmarkAnnotations.filter((landmark: any) => landmark.score > 0.1);
       combinedFeatures.landmarks.push(...landmarks);
     }
 
-    // Process labels with lower threshold
+    // Process labels with low threshold
     if (response.labelAnnotations && response.labelAnnotations.length > 0) {
       const labels = response.labelAnnotations
-        .filter((label: any) => label.score > 0.5)
+        .filter((label: any) => label.score > 0.4)
         .map((label: any) => label.description.toLowerCase());
       combinedFeatures.labels.push(...labels);
     }
 
-    // Process logos with lower threshold
+    // Process logos with very low threshold
     if (response.logoAnnotations && response.logoAnnotations.length > 0) {
-      const logos = response.logoAnnotations.filter((logo: any) => logo.score > 0.4);
+      const logos = response.logoAnnotations.filter((logo: any) => logo.score > 0.2);
       combinedFeatures.logos.push(...logos);
     }
 
     // Process object localization
     if (response.localizedObjectAnnotations && response.localizedObjectAnnotations.length > 0) {
       const objects = response.localizedObjectAnnotations
-        .filter((obj: any) => obj.score > 0.5)
+        .filter((obj: any) => obj.score > 0.4)
         .map((obj: any) => obj.name.toLowerCase());
       combinedFeatures.objects.push(...objects);
     }
   });
 
-  // Remove duplicates and generate enhanced regional guesses
+  // Remove duplicates
   combinedFeatures.labels = [...new Set(combinedFeatures.labels)];
   combinedFeatures.objects = [...new Set(combinedFeatures.objects)];
   combinedFeatures.textContent = [...new Set(combinedFeatures.textContent)];
+  combinedFeatures.documentText = [...new Set(combinedFeatures.documentText)];
+
+  // Log detected features for debugging
+  console.log('Detected features:', {
+    languages: Array.from(combinedFeatures.languages),
+    textContent: combinedFeatures.textContent,
+    documentText: combinedFeatures.documentText,
+    landmarks: combinedFeatures.landmarks.map(l => l.description),
+    logos: combinedFeatures.logos.map(l => l.description)
+  });
 
   return generateAdvancedRegionalGuesses(combinedFeatures);
 };
 
 const generateAdvancedRegionalGuesses = (features: any): string => {
-  const guesses: Array<{ 
-    location: string; 
-    region?: string; 
-    confidence: 'VERY HIGH' | 'HIGH' | 'MEDIUM' | 'LOW';
-    reasoning: string;
-  }> = [];
+  const guesses: LocationGuess[] = [];
   
   // Landmark-based guesses (highest confidence)
   if (features.landmarks.length > 0) {
@@ -265,6 +295,8 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
           ], 
           confidence: 'VERY HIGH' 
         },
+        'zh-cn': { locations: [{ location: 'China' }], confidence: 'VERY HIGH' },
+        'zh-tw': { locations: [{ location: 'Taiwan' }], confidence: 'VERY HIGH' },
         'ja': { locations: [{ location: 'Japan' }], confidence: 'VERY HIGH' },
         'ko': { locations: [{ location: 'South Korea' }], confidence: 'VERY HIGH' },
         'ar': { 
@@ -324,6 +356,17 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
         'pl': { locations: [{ location: 'Poland' }], confidence: 'HIGH' },
         'cs': { locations: [{ location: 'Czech Republic' }], confidence: 'HIGH' },
         'hu': { locations: [{ location: 'Hungary' }], confidence: 'HIGH' },
+        'tr': { locations: [{ location: 'Turkey' }], confidence: 'HIGH' },
+        'el': { locations: [{ location: 'Greece' }], confidence: 'HIGH' },
+        'bg': { locations: [{ location: 'Bulgaria' }], confidence: 'HIGH' },
+        'ro': { locations: [{ location: 'Romania' }], confidence: 'HIGH' },
+        'hr': { locations: [{ location: 'Croatia' }], confidence: 'HIGH' },
+        'sr': { locations: [{ location: 'Serbia' }], confidence: 'HIGH' },
+        'sk': { locations: [{ location: 'Slovakia' }], confidence: 'HIGH' },
+        'sl': { locations: [{ location: 'Slovenia' }], confidence: 'HIGH' },
+        'et': { locations: [{ location: 'Estonia' }], confidence: 'HIGH' },
+        'lv': { locations: [{ location: 'Latvia' }], confidence: 'HIGH' },
+        'lt': { locations: [{ location: 'Lithuania' }], confidence: 'HIGH' },
         'en': { 
           locations: [
             { location: 'United States' },
@@ -351,7 +394,7 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
   }
 
   // Text content analysis for specific clues
-  const textAnalysis = analyzeTextContent(features.textContent);
+  const textAnalysis = analyzeTextContent([...features.textContent, ...features.documentText]);
   guesses.push(...textAnalysis);
 
   // Logo-based commercial guesses
@@ -377,8 +420,16 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
     .sort((a, b) => confidenceOrder[b.confidence] - confidenceOrder[a.confidence])
     .slice(0, 4);
 
+  // Show detected text even if no location guesses
+  const detectedText = [...features.textContent, ...features.documentText]
+    .filter(text => text.length > 1)
+    .slice(0, 5);
+
   // Generate the enhanced clue text
   if (sortedGuesses.length === 0) {
+    if (detectedText.length > 0) {
+      return `🤖 **My analysis**: I can see some text but couldn't determine the location\n\n📝 **Detected text**: ${detectedText.join(', ')}\n\n🔍 **Suggestion**: Use this text to research the location, or try adjusting your view to capture more distinctive features!`;
+    }
     return "🤖 **My analysis**: Unable to determine location from current view\n\n🔍 **Suggestion**: Try adjusting your view to capture more text, signs, or distinctive features before requesting another clue!";
   }
 
@@ -402,23 +453,18 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
     clueText += `   *${guess.reasoning}* - ${guess.confidence} confidence\n\n`;
   });
 
+  // Add detected text if available
+  if (detectedText.length > 0) {
+    clueText += `📝 **Detected text**: ${detectedText.slice(0, 3).join(', ')}\n\n`;
+  }
+
   clueText += "💡 **Tip**: Look for license plates, road signs, architectural styles, and vegetation patterns to confirm!";
   
   return clueText;
 };
 
-const analyzeTextContent = (textContent: string[]): Array<{
-  location: string; 
-  region?: string; 
-  confidence: 'HIGH' | 'MEDIUM' | 'LOW';
-  reasoning: string;
-}> => {
-  const guesses: Array<{
-    location: string; 
-    region?: string; 
-    confidence: 'HIGH' | 'MEDIUM' | 'LOW';
-    reasoning: string;
-  }> = [];
+const analyzeTextContent = (textContent: string[]): LocationGuess[] => {
+  const guesses: LocationGuess[] = [];
   
   // Look for country/region indicators in text
   const locationKeywords = {
@@ -454,18 +500,8 @@ const analyzeTextContent = (textContent: string[]): Array<{
   return guesses;
 };
 
-const analyzeLogos = (logos: any[]): Array<{
-  location: string; 
-  region?: string; 
-  confidence: 'HIGH' | 'MEDIUM';
-  reasoning: string;
-}> => {
-  const guesses: Array<{
-    location: string; 
-    region?: string; 
-    confidence: 'HIGH' | 'MEDIUM';
-    reasoning: string;
-  }> = [];
+const analyzeLogos = (logos: any[]): LocationGuess[] => {
+  const guesses: LocationGuess[] = [];
   
   // Regional brand associations
   const brandRegions: { [key: string]: { location: string, region?: string, confidence: 'HIGH' | 'MEDIUM' } } = {
@@ -495,18 +531,8 @@ const analyzeLogos = (logos: any[]): Array<{
   return guesses;
 };
 
-const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): Array<{
-  location: string; 
-  region?: string; 
-  confidence: 'MEDIUM' | 'LOW';
-  reasoning: string;
-}> => {
-  const guesses: Array<{
-    location: string; 
-    region?: string; 
-    confidence: 'MEDIUM' | 'LOW';
-    reasoning: string;
-  }> = [];
+const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): LocationGuess[] => {
+  const guesses: LocationGuess[] = [];
   const allFeatures = [...labels, ...objects];
 
   // Vegetation-based regional indicators
@@ -514,7 +540,7 @@ const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): Arra
     guesses.push({
       location: 'Tropical/Subtropical region',
       region: 'Southern US, Mediterranean, Southeast Asia, or Caribbean',
-      confidence: 'MEDIUM' as const,
+      confidence: 'MEDIUM',
       reasoning: 'Tropical vegetation detected'
     });
   }
@@ -523,7 +549,7 @@ const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): Arra
     guesses.push({
       location: 'Northern temperate region',
       region: 'Scandinavia, Canada, Northern US, or Russia',
-      confidence: 'MEDIUM' as const,
+      confidence: 'MEDIUM',
       reasoning: 'Coniferous trees suggest northern climate'
     });
   }
@@ -533,7 +559,7 @@ const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): Arra
     guesses.push({
       location: 'East Asia',
       region: 'Japan, China, Korea, or Southeast Asia',
-      confidence: 'MEDIUM' as const,
+      confidence: 'MEDIUM',
       reasoning: 'Asian architectural elements detected'
     });
   }
@@ -542,7 +568,7 @@ const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): Arra
   if (allFeatures.some(feature => ['double decker', 'red bus'].some(term => feature.includes(term)))) {
     guesses.push({
       location: 'United Kingdom',
-      confidence: 'MEDIUM' as const,
+      confidence: 'MEDIUM',
       reasoning: 'British-style bus detected'
     });
   }
@@ -554,9 +580,13 @@ const getLanguageName = (code: string): string => {
   const languageNames: { [key: string]: string } = {
     'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German', 'it': 'Italian',
     'pt': 'Portuguese', 'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese',
+    'zh-cn': 'Chinese (Simplified)', 'zh-tw': 'Chinese (Traditional)',
     'ar': 'Arabic', 'hi': 'Hindi', 'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian',
     'ms': 'Malay', 'tl': 'Filipino', 'nl': 'Dutch', 'sv': 'Swedish', 'no': 'Norwegian',
-    'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'cs': 'Czech', 'hu': 'Hungarian'
+    'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'cs': 'Czech', 'hu': 'Hungarian',
+    'tr': 'Turkish', 'el': 'Greek', 'bg': 'Bulgarian', 'ro': 'Romanian', 'hr': 'Croatian',
+    'sr': 'Serbian', 'sk': 'Slovak', 'sl': 'Slovenian', 'et': 'Estonian', 'lv': 'Latvian',
+    'lt': 'Lithuanian'
   };
   return languageNames[code] || code.toUpperCase();
 };
