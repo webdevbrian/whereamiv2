@@ -185,7 +185,7 @@ const generateRegionalGuesses = (features: any): string => {
         regions.forEach(region => {
           guesses.push({
             region,
-            confidence: confidence === 'LOW' ? 'MEDIUM' : confidence, // Fix: ensure only HIGH or MEDIUM
+            confidence,
             reasoning: `Cyrillic/Asian/Arabic script detected` // Will be refined below
           });
         });
@@ -258,9 +258,8 @@ const generateRegionalGuesses = (features: any): string => {
   
   let clueText = "🤖 Based on what I can see:\n\n";
   
-  sortedGuesses.forEach((guess, index) => {
-    // Remove unused index parameter
-    const confidenceEmoji = guess.confidence === 'HIGH' ? '🎯' : guess.confidence === 'MEDIUM' ? '🎪' : '🤔';
+  sortedGuesses.forEach((guess) => {
+    const confidenceEmoji = guess.confidence === 'HIGH' ? '🎯' : '🎪';
     clueText += `${confidenceEmoji} **${guess.confidence} CONFIDENCE**: This could be ${guess.region}\n`;
   });
   
