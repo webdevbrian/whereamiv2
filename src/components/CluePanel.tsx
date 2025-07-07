@@ -136,7 +136,16 @@ const CluePanel: React.FC<CluePanelProps> = ({
             opacity: 0.9,
             lineHeight: '1.4'
           }}>
-            Need a hint? I can analyze this Street View location and provide clues about the region!
+            Need a hint? Adjust your view to show the most identifying features (signs, text, landmarks), then I'll analyze the location!
+          </p>
+          <p style={{ 
+            marginBottom: '15px', 
+            fontSize: '0.8rem',
+            opacity: 0.8,
+            lineHeight: '1.3',
+            fontStyle: 'italic'
+          }}>
+            💡 Best results: Point toward road signs, business names, or distinctive architecture
           </p>
           <button
             onClick={requestClue}
@@ -178,7 +187,7 @@ const CluePanel: React.FC<CluePanelProps> = ({
             margin: '0 auto 15px'
           }} />
           <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.9 }}>
-            🤖 Analyzing location...
+            🤖 Capturing multiple angles and analyzing...
           </p>
         </div>
       )}
@@ -195,7 +204,8 @@ const CluePanel: React.FC<CluePanelProps> = ({
             <p style={{ 
               margin: 0, 
               fontSize: '0.9rem',
-              lineHeight: '1.5'
+              lineHeight: '1.5',
+              whiteSpace: 'pre-line'
             }}>
               {clueData.text}
             </p>
@@ -219,7 +229,7 @@ const CluePanel: React.FC<CluePanelProps> = ({
             textAlign: 'center',
             fontStyle: 'italic'
           }}>
-            💡 One clue per round
+            💡 One AI analysis per round - make it count!
           </p>
         </div>
       )}

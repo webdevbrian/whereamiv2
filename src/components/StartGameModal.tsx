@@ -128,8 +128,9 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
             listStyle: 'none'
           }}>
             <li style={{ marginBottom: '0.5rem' }}>🗺️ Explore the Street View location</li>
-            <li style={{ marginBottom: '0.5rem' }}>⏱️ You have <strong>15 seconds</strong> per round</li>
+            <li style={{ marginBottom: '0.5rem' }}>⏱️ You have <strong>45 seconds</strong> per round</li>
             <li style={{ marginBottom: '0.5rem' }}>📍 Click the mini-map to place your guess</li>
+            <li style={{ marginBottom: '0.5rem' }}>🤖 Use AI clues to help identify locations</li>
             <li style={{ marginBottom: '0.5rem' }}>🎯 Complete <strong>5 rounds</strong> total</li>
           </ul>
         </div>
