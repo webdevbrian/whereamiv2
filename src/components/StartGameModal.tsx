@@ -21,14 +21,48 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
         }}>
           Where Am I?
         </h1>
-        <p style={{ 
+        <div style={{ 
           color: 'rgba(255,255,255,0.9)', 
           fontSize: '1.1rem', 
           marginBottom: '2rem',
-          fontWeight: '300'
+          fontWeight: '300',
+          textAlign: 'center'
         }}>
-          A project by Brian Kinney based off of GeoGuessr
-        </p>
+          <p style={{ margin: '0 0 0.5rem 0' }}>
+            A project by{' '}
+            <a 
+              href="https://github.com/webdevbrian/whereamiv2" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                color: '#10b981', 
+                textDecoration: 'none',
+                fontWeight: '500',
+                borderBottom: '1px solid rgba(16, 185, 129, 0.5)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.borderBottomColor = '#10b981';
+                e.currentTarget.style.color = '#34d399';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.borderBottomColor = 'rgba(16, 185, 129, 0.5)';
+                e.currentTarget.style.color = '#10b981';
+              }}
+            >
+              Brian Kinney
+            </a>{' '}
+            based off of GeoGuessr
+          </p>
+          <p style={{ 
+            margin: 0, 
+            fontSize: '0.9rem', 
+            color: 'rgba(255,255,255,0.7)',
+            fontStyle: 'italic'
+          }}>
+            Built with React, TypeScript, Google Maps API & Vite
+          </p>
+        </div>
         
         <button 
           className="btn btn-large" 
