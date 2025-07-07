@@ -51,8 +51,9 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
 
     // Add persistent tooltip for actual location
     const actualInfoWindow = new google.maps.InfoWindow({
-      content: '<div style="font-weight: bold; color: #10b981;">✅ Actual Location</div>',
-      disableAutoPan: true
+      content: '<div style="font-weight: bold; color: #10b981; padding: 4px 8px; font-size: 12px; white-space: nowrap;">✅ Actual Location</div>',
+      disableAutoPan: true,
+      headerDisabled: true
     });
     actualInfoWindow.open(map, actualMarker);
 
@@ -76,8 +77,9 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
 
       // Add persistent tooltip for guess location
       const guessInfoWindow = new google.maps.InfoWindow({
-        content: '<div style="font-weight: bold; color: #ef4444;">📍 Your Guess</div>',
-        disableAutoPan: true
+        content: '<div style="font-weight: bold; color: #ef4444; padding: 4px 8px; font-size: 12px; white-space: nowrap;">📍 Your Guess</div>',
+        disableAutoPan: true,
+        headerDisabled: true
       });
       guessInfoWindow.open(map, guessMarker);
 
@@ -97,6 +99,14 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
       bounds.extend(round.guessLocation);
       map.fitBounds(bounds);
     }
+
+    // Hide close buttons on InfoWindows after they're rendered
+    setTimeout(() => {
+      const closeButtons = document.querySelectorAll('.gm-ui-hover-effect');
+      closeButtons.forEach(button => {
+        (button as HTMLElement).style.display = 'none';
+      });
+    }, 100);
   }, [round]);
 
   if (round.timedOut) {
