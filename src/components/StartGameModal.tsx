@@ -6,12 +6,28 @@ interface StartGameModalProps {
 
 const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" style={{
+      backgroundImage: 'url(https://images.pexels.com/photos/355952/pexels-photo-355952.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)'
+      }} />
       <div className="modal-content" style={{ 
         maxWidth: '600px',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: 'white',
-        border: 'none'
+        border: 'none',
+        position: 'relative',
+        zIndex: 1
       }}>
         <h1 style={{ 
           color: 'white', 
