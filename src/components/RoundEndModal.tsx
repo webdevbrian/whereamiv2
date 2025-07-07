@@ -184,7 +184,6 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
             color: '#6b7280',
             fontStyle: 'italic'
           }}>
-            {getScoreDescription(round.distance, round.points)}
             {getScoreDescription(round.points)}
           </div>
         </div>
