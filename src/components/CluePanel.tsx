@@ -99,7 +99,7 @@ const CluePanel: React.FC<CluePanelProps> = ({
           alignItems: 'center',
           gap: '8px'
         }}>
-          🤖 AI Clue Companion
+          AI Clue Companion
         </h3>
         <button
           onClick={onClose}
@@ -145,7 +145,7 @@ const CluePanel: React.FC<CluePanelProps> = ({
             lineHeight: '1.3',
             fontStyle: 'italic'
           }}>
-            💡 Best results: Point toward road signs, business names, or distinctive architecture
+            Best results: Point toward road signs, business names, or distinctive architecture
           </p>
           <button
             onClick={requestClue}
@@ -170,7 +170,7 @@ const CluePanel: React.FC<CluePanelProps> = ({
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            🔍 Get AI Clue
+            Get AI Clue
           </button>
         </div>
       )}
@@ -187,7 +187,7 @@ const CluePanel: React.FC<CluePanelProps> = ({
             margin: '0 auto 15px'
           }} />
           <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.9 }}>
-            🤖 Capturing multiple angles and analyzing...
+            Capturing multiple angles and analyzing...
           </p>
         </div>
       )}
@@ -218,7 +218,7 @@ const CluePanel: React.FC<CluePanelProps> = ({
               opacity: 0.7,
               fontStyle: 'italic'
             }}>
-              ⚠️ Note: AI analysis had some limitations
+              Note: AI analysis had some limitations
             </p>
           )}
           
@@ -229,7 +229,7 @@ const CluePanel: React.FC<CluePanelProps> = ({
             textAlign: 'center',
             fontStyle: 'italic'
           }}>
-            💡 One AI analysis per round - make it count!
+            One AI analysis per round - make it count!
           </p>
         </div>
       )}
@@ -237,7 +237,7 @@ const CluePanel: React.FC<CluePanelProps> = ({
       {!canRequestClue && (
         <div style={{ textAlign: 'center', opacity: 0.7 }}>
           <p style={{ margin: 0, fontSize: '0.9rem' }}>
-            🚫 Clue already used this round
+            Clue already used this round
           </p>
         </div>
       )}

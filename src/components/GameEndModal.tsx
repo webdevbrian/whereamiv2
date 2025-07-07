@@ -15,7 +15,7 @@ const GameEndModal: React.FC<GameEndModalProps> = ({ totalScore, onPlayAgain }) 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h1>🎉 Congratulations!</h1>
+        <h1>Congratulations!</h1>
         <h2>Your final score was:</h2>
         <h1 style={{ color: '#059669', fontSize: '3rem', margin: '1rem 0' }}>
           {totalScore.toLocaleString()}

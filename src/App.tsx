@@ -285,7 +285,7 @@ function App() {
           }
         }}
       >
-        🤖 {gameState.clueUsed ? 'Clue Used' : 'AI Clue'}
+        {gameState.clueUsed ? 'Clue Used' : 'AI Clue'}
       </button>
 
       <CluePanel

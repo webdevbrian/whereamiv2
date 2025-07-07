@@ -102,7 +102,7 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
             e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.4)';
           }}
         >
-          🌍 Start Game
+          Start Game
         </button>
         
         <div style={{ 
@@ -120,18 +120,18 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
             alignItems: 'center',
             gap: '0.5rem'
           }}>
-            🎮 How to Play
+            How to Play
           </h3>
           <ul style={{ 
             color: 'rgba(255,255,255,0.9)', 
             lineHeight: '1.8',
             listStyle: 'none'
           }}>
-            <li style={{ marginBottom: '0.5rem' }}>🗺️ Explore the Street View location</li>
-            <li style={{ marginBottom: '0.5rem' }}>⏱️ You have <strong>45 seconds</strong> per round</li>
-            <li style={{ marginBottom: '0.5rem' }}>📍 Click the mini-map to place your guess</li>
-            <li style={{ marginBottom: '0.5rem' }}>🤖 Use AI clues to help identify locations</li>
-            <li style={{ marginBottom: '0.5rem' }}>🎯 Complete <strong>5 rounds</strong> total</li>
+            <li style={{ marginBottom: '0.5rem' }}>Explore the Street View location</li>
+            <li style={{ marginBottom: '0.5rem' }}>You have <strong>45 seconds</strong> per round</li>
+            <li style={{ marginBottom: '0.5rem' }}>Click the mini-map to place your guess</li>
+            <li style={{ marginBottom: '0.5rem' }}>Use AI clues to help identify locations</li>
+            <li style={{ marginBottom: '0.5rem' }}>Complete <strong>5 rounds</strong> total</li>
           </ul>
         </div>
 
@@ -149,7 +149,7 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
             alignItems: 'center',
             gap: '0.5rem'
           }}>
-            🏆 Scoring System
+            Scoring System
           </h3>
           <div style={{ color: 'rgba(255,255,255,0.9)', lineHeight: '1.6' }}>
             <div style={{ 
@@ -158,10 +158,10 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
               gap: '0.5rem',
               fontSize: '0.9rem'
             }}>
-              <div>🎯 <strong>1-10 km:</strong> 7,000-10,000 pts</div>
-              <div>🎪 <strong>11-200 km:</strong> 3,000-4,000 pts</div>
-              <div>🎨 <strong>201-800 km:</strong> 1,000-2,000 pts</div>
-              <div>⏰ <strong>Time out:</strong> 0 pts</div>
+              <div><strong>1-10 km:</strong> 7,000-10,000 pts</div>
+              <div><strong>11-200 km:</strong> 3,000-4,000 pts</div>
+              <div><strong>201-800 km:</strong> 1,000-2,000 pts</div>
+              <div><strong>Time out:</strong> 0 pts</div>
             </div>
             <p style={{ 
               marginTop: '0.75rem', 

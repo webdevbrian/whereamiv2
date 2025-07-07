@@ -7,13 +7,13 @@ interface RoundEndModalProps {
 }
 
 const getScoreDescription = (points: number): string => {
-  if (points >= 7000) return "🎯 Excellent guess! You were very close!";
-  if (points >= 4000) return "🎪 Great job! That's a solid guess!";
-  if (points >= 2000) return "🎨 Not bad! You're in the right region!";
-  if (points >= 1000) return "📍 Getting warmer! Keep practicing!";
-  if (points >= 500) return "🌍 That's quite far, but you're learning!";
-  if (points > 0) return "🗺️ Way off, but every guess teaches you something!";
-  return "❌ No points this time, but don't give up!";
+  if (points >= 7000) return "Excellent guess! You were very close!";
+  if (points >= 4000) return "Great job! That's a solid guess!";
+  if (points >= 2000) return "Not bad! You're in the right region!";
+  if (points >= 1000) return "Getting warmer! Keep practicing!";
+  if (points >= 500) return "That's quite far, but you're learning!";
+  if (points > 0) return "Way off, but every guess teaches you something!";
+  return "No points this time, but don't give up!";
 };
 
 const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
@@ -113,7 +113,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
     return (
       <div className="modal-overlay">
         <div className="modal-content">
-          <h2>Time's Up! ⏰</h2>
+          <h2>Time's Up!</h2>
           <p>You took too long to make a guess!</p>
           <div style={{ 
             background: '#fef2f2', 
@@ -130,7 +130,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              ⏰ Round {round.roundNumber} Score
+              Round {round.roundNumber} Score
             </h3>
             <div style={{ 
               fontSize: '2rem', 
@@ -145,7 +145,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
               color: '#6b7280',
               fontStyle: 'italic'
             }}>
-              ⏱️ Time ran out - no points awarded
+              Time ran out - no points awarded
             </div>
           </div>
           <button className="btn btn-primary" onClick={onContinue}>
@@ -176,7 +176,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
             alignItems: 'center',
             gap: '0.5rem'
           }}>
-            📏 Distance Analysis
+            Distance Analysis
           </h3>
           <div style={{ 
             fontSize: '1.8rem', 
@@ -212,7 +212,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
             alignItems: 'center',
             gap: '0.5rem'
           }}>
-            🏆 Round {round.roundNumber} Score
+            Round {round.roundNumber} Score
           </h3>
           <div style={{ 
             fontSize: '2rem', 
