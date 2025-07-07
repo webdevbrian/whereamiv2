@@ -22,7 +22,7 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
           Where Am I?
         </h1>
         <div style={{ 
-          color: 'rgba(255,255,255,0.6)', 
+          color: 'white', 
           fontSize: '1.1rem', 
           marginBottom: '2rem',
           fontWeight: '400',
@@ -37,17 +37,14 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
               rel="noopener noreferrer"
               style={{ 
                 color: '#10b981', 
-                textDecoration: 'none',
+                textDecoration: 'underline',
                 fontWeight: '500',
-                borderBottom: '1px solid rgba(16, 185, 129, 0.5)',
                 transition: 'all 0.2s ease'
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.borderBottomColor = '#10b981';
                 e.currentTarget.style.color = '#34d399';
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.borderBottomColor = 'rgba(16, 185, 129, 0.5)';
                 e.currentTarget.style.color = '#10b981';
               }}
             >
