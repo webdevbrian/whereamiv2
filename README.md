@@ -1,7 +1,7 @@
 Whereami?
 ========
 
-![Whereami version 2!](https://i.imgur.com/H179ync.png)
+![Whereami version 2!](https://i.imgur.com/TfgrDGY.png)
 
 This is a recreation of my original clon of geoguessr I made almost 13 years ago. It's now rebuilt in react and deployed on vercel Check it out here! -> https://whereamiv2.vercel.app/.
 
