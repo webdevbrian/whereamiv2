@@ -1,13 +1,36 @@
+// Module-level variable to store the promise and prevent multiple script loads
+let scriptPromise: Promise<void> | null = null;
+
 export const loadGoogleMapsScript = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    if (window.google && window.google.maps) {
-      resolve();
+  // If we already have a promise (script is loading or loaded), return it
+  if (scriptPromise) {
+    return scriptPromise;
+  }
+
+  // If Google Maps is already loaded, return a resolved promise
+  if (window.google && window.google.maps) {
+    scriptPromise = Promise.resolve();
+    return scriptPromise;
+  }
+
+  // Create a new promise for loading the script
+  scriptPromise = new Promise((resolve, reject) => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      reject(new Error('Google Maps API key not found. Please add VITE_GOOGLE_MAPS_API_KEY to your .env file.'));
       return;
     }
 
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-      reject(new Error('Google Maps API key not found. Please add VITE_GOOGLE_MAPS_API_KEY to your .env file.'));
+    // Check if script is already in the DOM
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (existingScript) {
+      // Script already exists, wait for it to load
+      if (window.google && window.google.maps) {
+        resolve();
+      } else {
+        existingScript.addEventListener('load', () => resolve());
+        existingScript.addEventListener('error', () => reject(new Error('Failed to load Google Maps script')));
+      }
       return;
     }
 
@@ -21,4 +44,6 @@ export const loadGoogleMapsScript = (): Promise<void> => {
     
     document.head.appendChild(script);
   });
+
+  return scriptPromise;
 };
