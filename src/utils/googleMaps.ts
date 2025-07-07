@@ -15,7 +15,7 @@ export const loadGoogleMapsScript = (): Promise<void> => {
 
   // Create a new promise for loading the script
   scriptPromise = new Promise((resolve, reject) => {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyAPWKAKs_6bAGx8p6l1As3IpZsX2VrA1xU';
     if (!apiKey) {
       reject(new Error('Google Maps API key not found. Please add VITE_GOOGLE_MAPS_API_KEY to your .env file.'));
       return;
