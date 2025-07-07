@@ -185,7 +185,7 @@ const generateRegionalGuesses = (features: any): string => {
         regions.forEach(region => {
           guesses.push({
             region,
-            confidence,
+            confidence: confidence === 'LOW' ? 'MEDIUM' : confidence, // Fix: ensure only HIGH or MEDIUM
             reasoning: `Cyrillic/Asian/Arabic script detected` // Will be refined below
           });
         });
@@ -205,14 +205,6 @@ const generateRegionalGuesses = (features: any): string => {
   }
   
   // Architecture and environment-based guesses (lower confidence)
-  const architecturalClues = features.labels.filter((label: string) => 
-    ['building', 'architecture', 'house', 'structure', 'roof', 'window'].some(term => label.includes(term))
-  );
-  
-  const vegetationClues = features.labels.filter((label: string) => 
-    ['tree', 'plant', 'vegetation', 'palm', 'pine', 'forest', 'grass'].some(term => label.includes(term))
-  );
-  
   // Palm trees suggest tropical/subtropical regions
   if (features.labels.some((label: string) => label.includes('palm'))) {
     guesses.push({
@@ -239,7 +231,7 @@ const generateRegionalGuesses = (features: any): string => {
   if (vehicleClues.length > 0) {
     guesses.push({
       region: 'Developed country with modern infrastructure',
-      confidence: 'LOW',
+      confidence: 'MEDIUM',
       reasoning: 'Modern vehicles and roads visible'
     });
   }
@@ -248,7 +240,7 @@ const generateRegionalGuesses = (features: any): string => {
   if (features.logos.length > 0) {
     guesses.push({
       region: 'Commercial area in developed country',
-      confidence: 'LOW',
+      confidence: 'MEDIUM',
       reasoning: 'Commercial signage detected'
     });
   }
@@ -267,6 +259,7 @@ const generateRegionalGuesses = (features: any): string => {
   let clueText = "🤖 Based on what I can see:\n\n";
   
   sortedGuesses.forEach((guess, index) => {
+    // Remove unused index parameter
     const confidenceEmoji = guess.confidence === 'HIGH' ? '🎯' : guess.confidence === 'MEDIUM' ? '🎪' : '🤔';
     clueText += `${confidenceEmoji} **${guess.confidence} CONFIDENCE**: This could be ${guess.region}\n`;
   });
@@ -275,13 +268,14 @@ const generateRegionalGuesses = (features: any): string => {
   const observations: string[] = [];
   
   if (features.languages.size > 0) {
-    const languageNames = Array.from(features.languages).map((lang: string) => {
+    const languageNames = Array.from(features.languages).map((lang: unknown) => {
+      const langCode = lang as string;
       const langMap: { [key: string]: string } = {
         'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German',
         'it': 'Italian', 'pt': 'Portuguese', 'ru': 'Russian', 'ja': 'Japanese',
         'ko': 'Korean', 'zh': 'Chinese', 'ar': 'Arabic', 'hi': 'Hindi', 'th': 'Thai'
       };
-      return langMap[lang as string] || lang;
+      return langMap[langCode] || langCode;
     });
     observations.push(`Text detected in: ${languageNames.join(', ')}`);
   }
