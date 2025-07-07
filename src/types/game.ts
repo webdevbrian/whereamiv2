@@ -16,4 +16,6 @@ export interface GameState {
   timerCount: number;
   isTimerRunning: boolean;
   hasGameStarted: boolean;
+  clueRequested: boolean;
+  clueUsed: boolean;
 }

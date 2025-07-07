@@ -2,9 +2,10 @@ import { useEffect, useRef } from 'react';
 
 interface StreetViewProps {
   location: google.maps.LatLng | null;
+  onPanoramaLoad?: (panorama: google.maps.StreetViewPanorama) => void;
 }
 
-const StreetView: React.FC<StreetViewProps> = ({ location }) => {
+const StreetView: React.FC<StreetViewProps> = ({ location, onPanoramaLoad }) => {
   const streetViewRef = useRef<HTMLDivElement>(null);
   const panoramaRef = useRef<google.maps.StreetViewPanorama | null>(null);
 
@@ -38,6 +39,11 @@ const StreetView: React.FC<StreetViewProps> = ({ location }) => {
               streetViewRef.current,
               panoramaOptions
             );
+            
+            // Notify parent component that panorama is loaded
+            if (onPanoramaLoad) {
+              onPanoramaLoad(panoramaRef.current);
+            }
           }
         } else {
           console.error('Street View not available for this location');

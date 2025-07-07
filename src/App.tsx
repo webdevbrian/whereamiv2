@@ -10,10 +10,11 @@ import GuessButton from './components/GuessButton';
 import RoundEndModal from './components/RoundEndModal';
 import GameEndModal from './components/GameEndModal';
 import StartGameModal from './components/StartGameModal';
+import CluePanel from './components/CluePanel';
 import { calculateDistance, calculatePoints } from './utils/scoring';
 import './App.css';
 
-const TIMER_DURATION = 15;
+const TIMER_DURATION = 45;
 const MAX_ROUNDS = 5;
 
 function App() {
@@ -25,12 +26,16 @@ function App() {
     isRoundEnded: false,
     timerCount: TIMER_DURATION,
     isTimerRunning: false,
-    hasGameStarted: false
+    hasGameStarted: false,
+    clueRequested: false,
+    clueUsed: false
   });
 
   const [currentLocation, setCurrentLocation] = useState<google.maps.LatLng | null>(null);
   const [guessLocation, setGuessLocation] = useState<google.maps.LatLng | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
+  const [panoramaRef, setPanoramaRef] = useState<google.maps.StreetViewPanorama | null>(null);
+  const [showCluePanel, setShowCluePanel] = useState(false);
 
   // Load Google Maps
   useEffect(() => {
@@ -53,9 +58,12 @@ function App() {
         setGameState(prev => ({
           ...prev,
           isRoundEnded: false,
+          clueRequested: false,
+          clueUsed: false,
           timerCount: TIMER_DURATION,
           isTimerRunning: true
         }));
+        setShowCluePanel(false);
       })
       .catch((error) => {
         console.error('Failed to find valid location:', error);
@@ -137,8 +145,11 @@ function App() {
       setGameState(prev => ({
         ...prev,
         currentRound: prev.currentRound + 1,
-        isRoundEnded: false
+        isRoundEnded: false,
+        clueRequested: false,
+        clueUsed: false
       }));
+      setShowCluePanel(false);
       initializeRound();
     }
   };
@@ -152,12 +163,27 @@ function App() {
       isRoundEnded: false,
       timerCount: TIMER_DURATION,
       isTimerRunning: false,
-      hasGameStarted: false
+      hasGameStarted: false,
+      clueRequested: false,
+      clueUsed: false
     });
+    setShowCluePanel(false);
   };
 
   const startGame = () => {
     setGameState(prev => ({ ...prev, hasGameStarted: true }));
+  };
+
+  const handleClueRequested = () => {
+    setGameState(prev => ({ 
+      ...prev, 
+      clueRequested: true,
+      clueUsed: true 
+    }));
+  };
+
+  const toggleCluePanel = () => {
+    setShowCluePanel(prev => !prev);
   };
 
   const handleMapClick = (latLng: google.maps.LatLng) => {
@@ -197,7 +223,10 @@ function App() {
 
   return (
     <div className="app">
-      <StreetView location={currentLocation} />
+      <StreetView 
+        location={currentLocation} 
+        onPanoramaLoad={setPanoramaRef}
+      />
       
       <MiniMap 
         onMapClick={memoizedMapClick}
@@ -217,6 +246,54 @@ function App() {
       <GuessButton 
         onClick={handleGuess}
         disabled={!guessLocation || gameState.isRoundEnded}
+      />
+
+      <button
+        onClick={toggleCluePanel}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: showCluePanel ? '360px' : '20px',
+          zIndex: 1600,
+          background: gameState.clueUsed 
+            ? 'rgba(107, 114, 128, 0.9)' 
+            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '12px',
+          padding: '12px 16px',
+          fontSize: '14px',
+          fontWeight: '600',
+          cursor: gameState.clueUsed ? 'not-allowed' : 'pointer',
+          transition: 'all 0.3s ease',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+          opacity: gameState.clueUsed ? 0.6 : 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}
+        onMouseOver={(e) => {
+          if (!gameState.clueUsed) {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.3)';
+          }
+        }}
+        onMouseOut={(e) => {
+          if (!gameState.clueUsed) {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+          }
+        }}
+      >
+        🤖 {gameState.clueUsed ? 'Clue Used' : 'AI Clue'}
+      </button>
+
+      <CluePanel
+        panorama={panoramaRef}
+        isVisible={showCluePanel}
+        onClose={() => setShowCluePanel(false)}
+        onClueRequested={handleClueRequested}
+        canRequestClue={!gameState.clueUsed && gameState.isTimerRunning}
       />
 
       {gameState.isRoundEnded && currentRoundData && (
