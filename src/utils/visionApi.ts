@@ -495,12 +495,12 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
   // Generate the enhanced clue text
   if (sortedGuesses.length === 0) {
     if (detectedText.length > 0) {
-      return `🤖 **My analysis**: I can see some text but couldn't determine the location\n\n📝 **Detected text**: ${detectedText.join(', ')}\n\n🔍 **Suggestion**: Use this text to research the location, or try adjusting your view to capture more distinctive features!`;
+      return `🤖 I can see some text but couldn't determine the location\n\n📝 **Text found**: ${detectedText.join(', ')}\n\n🔍 Try adjusting your view to capture more distinctive features!`;
     }
-    return "🤖 **My analysis**: Unable to determine location from current view\n\n🔍 **Suggestion**: Try adjusting your view to capture more text, signs, or distinctive features before requesting another clue!";
+    return "🤖 Unable to determine location from current view\n\n🔍 Try adjusting your view to capture more text, signs, or distinctive features!";
   }
 
-  let clueText = "🤖 **My location analysis**:\n\n";
+  let clueText = "🤖 **Location Analysis**:\n\n";
   
   sortedGuesses.forEach((guess, index) => {
     const confidenceEmoji = {
@@ -510,26 +510,82 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
       'LOW': '📍'
     }[guess.confidence];
     
-    const priority = ['1st', '2nd', '3rd', '4th'][index];
+    const priority = ['1st', '2nd', '3rd'][index];
     
     if (guess.region) {
-      clueText += `${confidenceEmoji} **${priority} guess**: ${guess.location} (${guess.region})\n`;
+      clueText += `${confidenceEmoji} ${priority}: ${guess.location} (${guess.region})\n`;
     } else {
-      clueText += `${confidenceEmoji} **${priority} guess**: ${guess.location}\n`;
+      clueText += `${confidenceEmoji} ${priority}: ${guess.location}\n`;
     }
-    clueText += `   *${guess.reasoning}* - ${guess.confidence} confidence\n\n`;
+    clueText += `   ${guess.reasoning}\n\n`;
   });
 
   // Add detected text if available
   if (detectedText.length > 0) {
-    clueText += `📝 **Detected text**: ${detectedText.slice(0, 3).join(', ')}\n\n`;
+    clueText += `📝 **Text found**: ${detectedText.slice(0, 3).join(', ')}\n\n`;
   }
 
-  clueText += "💡 **Tip**: Look for license plates, road signs, architectural styles, and vegetation patterns to confirm!";
+  // Add environmental features if detected
+  const environmentalFeatures = getEnvironmentalFeatures(combinedFeatures.labels, combinedFeatures.objects);
+  if (environmentalFeatures.length > 0) {
+    clueText += `🌿 **Environment**: ${environmentalFeatures.join(', ')}\n\n`;
+  }
+
+  clueText += "💡 Look for license plates, road signs, and architectural styles to confirm!";
   
   return clueText;
 };
 
+const getEnvironmentalFeatures = (labels: string[], objects: string[]): string[] => {
+  const features: string[] = [];
+  const allFeatures = [...labels, ...objects];
+
+  // Vegetation
+  if (allFeatures.some(f => ['palm', 'coconut', 'tropical'].some(term => f.includes(term)))) {
+    features.push('tropical vegetation');
+  }
+  if (allFeatures.some(f => ['pine', 'conifer', 'evergreen', 'spruce'].some(term => f.includes(term)))) {
+    features.push('coniferous trees');
+  }
+  if (allFeatures.some(f => ['deciduous', 'oak', 'maple', 'birch'].some(term => f.includes(term)))) {
+    features.push('deciduous trees');
+  }
+  if (allFeatures.some(f => ['desert', 'cactus', 'arid'].some(term => f.includes(term)))) {
+    features.push('desert landscape');
+  }
+
+  // Architecture
+  if (allFeatures.some(f => ['pagoda', 'temple', 'shrine'].some(term => f.includes(term)))) {
+    features.push('Asian architecture');
+  }
+  if (allFeatures.some(f => ['colonial', 'victorian', 'georgian'].some(term => f.includes(term)))) {
+    features.push('colonial architecture');
+  }
+  if (allFeatures.some(f => ['modern', 'skyscraper', 'glass'].some(term => f.includes(term)))) {
+    features.push('modern buildings');
+  }
+
+  // Climate indicators
+  if (allFeatures.some(f => ['snow', 'ice', 'winter'].some(term => f.includes(term)))) {
+    features.push('cold climate');
+  }
+  if (allFeatures.some(f => ['beach', 'ocean', 'coastal'].some(term => f.includes(term)))) {
+    features.push('coastal area');
+  }
+  if (allFeatures.some(f => ['mountain', 'hill', 'alpine'].some(term => f.includes(term)))) {
+    features.push('mountainous terrain');
+  }
+
+  // Urban vs rural
+  if (allFeatures.some(f => ['city', 'urban', 'downtown', 'metropolitan'].some(term => f.includes(term)))) {
+    features.push('urban environment');
+  }
+  if (allFeatures.some(f => ['rural', 'countryside', 'farm', 'field'].some(term => f.includes(term)))) {
+    features.push('rural area');
+  }
+
+  return features.slice(0, 3); // Limit to 3 most relevant features
+};
 const analyzeTextContent = (textContent: string[]): LocationGuess[] => {
   const guesses: LocationGuess[] = [];
   
