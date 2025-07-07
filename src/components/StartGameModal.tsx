@@ -124,8 +124,7 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
           </h3>
           <ul style={{ 
             color: 'rgba(255,255,255,0.9)', 
-            lineHeight: '1.8', 
-            paddingLeft: '1.5rem',
+            lineHeight: '1.8',
             listStyle: 'none'
           }}>
             <li style={{ marginBottom: '0.5rem' }}>🗺️ Explore the Street View location</li>
