@@ -6,7 +6,7 @@ interface RoundEndModalProps {
   onContinue: () => void;
 }
 
-const getScoreDescription = (distance: number, points: number): string => {
+const getScoreDescription = (points: number): string => {
   if (points >= 7000) return "🎯 Excellent guess! You were very close!";
   if (points >= 4000) return "🎪 Great job! That's a solid guess!";
   if (points >= 2000) return "🎨 Not bad! You're in the right region!";
@@ -185,6 +185,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
             fontStyle: 'italic'
           }}>
             {getScoreDescription(round.distance, round.points)}
+            {getScoreDescription(round.points)}
           </div>
         </div>
         
