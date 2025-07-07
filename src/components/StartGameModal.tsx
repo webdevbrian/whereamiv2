@@ -40,7 +40,7 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
         <div style={{ 
           color: 'white', 
           fontSize: '1.1rem', 
-          marginBottom: '2rem',
+          marginBottom: '1.5rem',
           fontWeight: '400',
           textAlign: 'center',
           textShadow: '0 1px 2px rgba(0,0,0,0.3)'
@@ -84,11 +84,11 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
           onClick={onStartGame}
           style={{ 
             fontSize: '1.3rem', 
-            padding: '18px 48px',
+            padding: '14px 36px',
             background: '#10b981',
             color: 'white',
             border: 'none',
-            marginBottom: '2rem',
+            marginBottom: '1.5rem',
             boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
             transform: 'translateY(0)',
             transition: 'all 0.3s ease'
@@ -107,15 +107,15 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
         
         <div style={{ 
           textAlign: 'left', 
-          marginBottom: '1.5rem',
+          marginBottom: '1rem',
           background: 'rgba(255,255,255,0.1)',
-          padding: '1.5rem',
+          padding: '1rem',
           borderRadius: '12px',
           backdropFilter: 'blur(10px)'
         }}>
           <h3 style={{ 
             color: 'white', 
-            marginBottom: '1rem',
+            marginBottom: '0.75rem',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem'
@@ -138,13 +138,13 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
         <div style={{ 
           textAlign: 'left',
           background: 'rgba(255,255,255,0.1)',
-          padding: '1.5rem',
+          padding: '1rem',
           borderRadius: '12px',
           backdropFilter: 'blur(10px)'
         }}>
           <h3 style={{ 
             color: 'white', 
-            marginBottom: '1rem',
+            marginBottom: '0.75rem',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem'
@@ -164,7 +164,7 @@ const StartGameModal: React.FC<StartGameModalProps> = ({ onStartGame }) => {
               <div>⏰ <strong>Time out:</strong> 0 pts</div>
             </div>
             <p style={{ 
-              marginTop: '1rem', 
+              marginTop: '0.75rem', 
               fontSize: '0.85rem', 
               fontStyle: 'italic',
               color: 'rgba(255,255,255,0.8)'

@@ -117,14 +117,14 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
           <p>You took too long to make a guess!</p>
           <div style={{ 
             background: '#fef2f2', 
-            padding: '1rem', 
+            padding: '0.75rem', 
             borderRadius: '8px', 
-            margin: '1rem 0',
+            margin: '0.75rem 0',
             border: '1px solid #fecaca'
           }}>
             <h3 style={{ 
               color: '#dc2626', 
-              margin: '0 0 0.5rem 0', 
+              margin: '0 0 0.25rem 0', 
               fontSize: '1.5rem',
               display: 'flex',
               alignItems: 'center',
@@ -136,7 +136,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
               fontSize: '2rem', 
               fontWeight: 'bold', 
               color: '#dc2626',
-              margin: '0.5rem 0'
+              margin: '0.25rem 0'
             }}>
               0 points
             </div>
@@ -163,14 +163,14 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
         
         <div style={{ 
           background: '#f0f9ff', 
-          padding: '1rem', 
+          padding: '0.75rem', 
           borderRadius: '8px', 
-          margin: '1rem 0',
+          margin: '0.75rem 0',
           border: '1px solid #bae6fd'
         }}>
           <h3 style={{ 
             color: '#0369a1', 
-            margin: '0 0 0.5rem 0', 
+            margin: '0 0 0.25rem 0', 
             fontSize: '1.2rem',
             display: 'flex',
             alignItems: 'center',
@@ -182,7 +182,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
             fontSize: '1.8rem', 
             fontWeight: 'bold', 
             color: '#0369a1',
-            margin: '0.5rem 0'
+            margin: '0.25rem 0'
           }}>
             {round.distance.toLocaleString()} km away
           </div>
@@ -199,14 +199,14 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
         
         <div style={{ 
           background: '#f8f9fa', 
-          padding: '1rem', 
+          padding: '0.75rem', 
           borderRadius: '8px', 
-          margin: '1rem 0',
+          margin: '0.75rem 0',
           border: '1px solid #e9ecef'
         }}>
           <h3 style={{ 
             color: '#059669', 
-            margin: '0 0 0.5rem 0', 
+            margin: '0 0 0.25rem 0', 
             fontSize: '1.5rem',
             display: 'flex',
             alignItems: 'center',
@@ -218,7 +218,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
             fontSize: '2rem', 
             fontWeight: 'bold', 
             color: '#059669',
-            margin: '0.5rem 0'
+            margin: '0.25rem 0'
           }}>
             {round.points.toLocaleString()} points
           </div>
