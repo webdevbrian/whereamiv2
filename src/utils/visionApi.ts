@@ -1,4 +1,3 @@
-import html2canvas from 'html2canvas';
 import { VisionApiResponse } from '../types/clue';
 
 export const analyzeStreetViewImage = async (panorama: google.maps.StreetViewPanorama): Promise<string> => {
@@ -9,8 +8,8 @@ export const analyzeStreetViewImage = async (panorama: google.maps.StreetViewPan
   }
 
   try {
-    // Capture the current Street View as an image
-    const imageData = await captureStreetView(panorama);
+    // Capture the current Street View as an image using Static API
+    const imageData = await captureStreetViewStatic(panorama);
     
     // Prepare the Vision API request
     const visionRequest = {
@@ -60,54 +59,56 @@ export const analyzeStreetViewImage = async (panorama: google.maps.StreetViewPan
   }
 };
 
-const captureStreetView = async (panorama: google.maps.StreetViewPanorama): Promise<string> => {
+const captureStreetViewStatic = async (panorama: google.maps.StreetViewPanorama): Promise<string> => {
   try {
-    // Get the Street View div using the panorama's container
-    const streetViewDiv = (panorama as any).getDiv?.() || document.querySelector('[data-street-view]') as HTMLElement;
+    const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     
-    if (!streetViewDiv) {
-      // Fallback: try to find the Street View container in the DOM
-      const containers = document.querySelectorAll('div[style*="position"]');
-      let foundContainer: HTMLElement | null = null;
-      
-      for (const container of containers) {
-        const element = container as HTMLElement;
-        if (element.style.position === 'absolute' && 
-            element.style.width === '100%' && 
-            element.style.height === '100%') {
-          foundContainer = element;
-          break;
-        }
-      }
-      
-      if (!foundContainer) {
-        throw new Error('Could not find Street View container');
-      }
-      
-      // Use html2canvas to capture the Street View
-      const canvas = await html2canvas(foundContainer, {
-        width: 640,
-        height: 480,
-        useCORS: true,
-        allowTaint: true,
-        scale: 1,
-        logging: false
-      });
-
-      return canvas.toDataURL('image/jpeg', 0.8);
+    if (!mapsApiKey) {
+      throw new Error('Google Maps API key not found');
     }
 
-    // Use html2canvas to capture the Street View
-    const canvas = await html2canvas(streetViewDiv, {
-      width: 640,
-      height: 480,
-      useCORS: true,
-      allowTaint: true,
-      scale: 1,
-      logging: false
+    // Get current panorama state
+    const position = panorama.getPosition();
+    const pov = panorama.getPov();
+    
+    if (!position) {
+      throw new Error('Could not get panorama position');
+    }
+
+    // Build Street View Static API URL
+    const params = new URLSearchParams({
+      size: '640x640', // Square format works well for Vision API
+      location: `${position.lat()},${position.lng()}`,
+      heading: pov.heading?.toString() || '0',
+      pitch: pov.pitch?.toString() || '0',
+      fov: '90', // Field of view - 90 degrees is a good balance
+      key: mapsApiKey
     });
 
-    return canvas.toDataURL('image/jpeg', 0.8);
+    const staticUrl = `https://maps.googleapis.com/maps/api/streetview?${params.toString()}`;
+
+    // Fetch the image and convert to base64
+    const response = await fetch(staticUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Street View Static API failed: ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to convert image to base64'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read image blob'));
+      reader.readAsDataURL(blob);
+    });
+
   } catch (error) {
     console.error('Failed to capture Street View:', error);
     throw new Error('Could not capture Street View image');
