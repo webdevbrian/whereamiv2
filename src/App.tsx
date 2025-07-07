@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { GameState, GameRound } from './types/game';
 import { loadGoogleMapsScript } from './utils/googleMaps';
-import { COORDINATES } from './data/coordinates';
+import { generateRandomLocation, findValidStreetViewLocation } from './utils/locationGenerator';
 import StreetView from './components/StreetView';
 import MiniMap from './components/MiniMap';
 import ScoreBoard from './components/ScoreBoard';
@@ -43,18 +43,25 @@ function App() {
   const initializeRound = useCallback(() => {
     if (!mapsLoaded) return;
 
-    const randomCoord = COORDINATES[Math.floor(Math.random() * COORDINATES.length)];
-    const [lat, lng] = randomCoord.split(',').map(Number);
-    const location = new google.maps.LatLng(lat, lng);
+    // Generate a random location and find a valid Street View location
+    const randomLocation = generateRandomLocation();
     
-    setCurrentLocation(location);
-    setGuessLocation(null);
-    setGameState(prev => ({
-      ...prev,
-      isRoundEnded: false,
-      timerCount: TIMER_DURATION,
-      isTimerRunning: true
-    }));
+    findValidStreetViewLocation(randomLocation)
+      .then((validLocation) => {
+        setCurrentLocation(validLocation);
+        setGuessLocation(null);
+        setGameState(prev => ({
+          ...prev,
+          isRoundEnded: false,
+          timerCount: TIMER_DURATION,
+          isTimerRunning: true
+        }));
+      })
+      .catch((error) => {
+        console.error('Failed to find valid location:', error);
+        // Fallback: try again with a new random location
+        setTimeout(() => initializeRound(), 1000);
+      });
   }, [mapsLoaded]);
 
   // Timer effect
