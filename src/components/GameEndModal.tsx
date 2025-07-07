@@ -59,13 +59,15 @@ const GameEndModal: React.FC<GameEndModalProps> = ({ totalScore, onPlayAgain }) 
                   width: '10px',
                   height: '10px',
                   backgroundColor: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'][i % 6],
-                  left: `${Math.random() * 100}%`,
-                  animationName: 'confetti-fall',
-                  animationDuration: `${2 + Math.random() * 3}s`,
+                  left: `${40 + Math.random() * 20}%`,
+                  bottom: '0px',
+                  animationName: 'confetti-explode',
+                  animationDuration: '3s',
                   animationTimingFunction: 'linear',
-                  animationIterationCount: 'infinite',
+                  animationIterationCount: '1',
                   animationDelay: `${Math.random() * 2}s`,
-                  borderRadius: '50%'
+                  borderRadius: '50%',
+                  animationFillMode: 'forwards'
                 }}
               />
             ))}
@@ -105,14 +107,18 @@ const GameEndModal: React.FC<GameEndModalProps> = ({ totalScore, onPlayAgain }) 
         
         <style>
           {`
-            @keyframes confetti-fall {
+            @keyframes confetti-explode {
               0% {
-                transform: translateY(-100vh) rotate(0deg);
+                transform: translateY(0) translateX(0) rotate(0deg);
                 opacity: 1;
               }
+             30% {
+                transform: translateY(-${200 + Math.random() * 200}px) translateX(${(Math.random() - 0.5) * 400}px) rotate(180deg);
+                opacity: 1;
+             }
               100% {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
+                transform: translateY(100px) translateX(${(Math.random() - 0.5) * 400}px) rotate(720deg);
+                opacity: 0.3;
               }
             }
           `}
