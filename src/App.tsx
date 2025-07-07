@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GameState, GameRound } from './types/game';
 import { loadGoogleMapsScript } from './utils/googleMaps';
 import { COORDINATES } from './data/coordinates';
@@ -57,7 +57,7 @@ function App() {
 
   // Timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number;
     
     if (gameState.isTimerRunning && gameState.timerCount > 0) {
       interval = setInterval(() => {

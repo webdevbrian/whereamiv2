@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface MiniMapProps {
   onMapClick: (latLng: google.maps.LatLng) => void;

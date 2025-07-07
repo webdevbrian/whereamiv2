@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface StreetViewProps {
   location: google.maps.LatLng | null;
@@ -17,7 +17,7 @@ const StreetView: React.FC<StreetViewProps> = ({ location }) => {
     streetViewService.getPanoramaByLocation(
       location,
       STREETVIEW_MAX_DISTANCE,
-      (data, status) => {
+      (data: google.maps.StreetViewPanoramaData | null, status: google.maps.StreetViewStatus) => {
         if (status === google.maps.StreetViewStatus.OK && streetViewRef.current) {
           const panoramaOptions: google.maps.StreetViewPanoramaOptions = {
             position: location,
@@ -25,7 +25,7 @@ const StreetView: React.FC<StreetViewProps> = ({ location }) => {
             linksControl: false,
             pov: {
               heading: 270,
-              zoom: 1,
+              zoom: 0,
               pitch: -10
             },
             visible: true,
