@@ -519,7 +519,7 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
   
   const sortedGuesses = uniqueGuesses
     .sort((a, b) => confidenceOrder[b.confidence] - confidenceOrder[a.confidence])
-    .slice(0, 4);
+    .slice(0, 2);
 
   // Show detected text even if no location guesses
   const detectedText = [...features.textContent, ...features.documentText]
@@ -533,18 +533,18 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
     const vegetationGuess = getVegetationBasedGuess(features.labels, features.objects);
     
     if (vegetationGuess || environmentalFeatures.length > 0) {
-      let fallbackText = "🤖 **Environmental Analysis**:\n\n";
+      let fallbackText = "🤖 Environmental Analysis:\n\n";
       
       if (vegetationGuess) {
         fallbackText += `🌿 ${vegetationGuess}\n\n`;
       }
       
       if (environmentalFeatures.length > 0) {
-        fallbackText += `🏞️ **Environment**: ${environmentalFeatures.join(', ')}\n\n`;
+        fallbackText += `🏞️ Environment: ${environmentalFeatures.join(', ')}\n\n`;
       }
       
       if (detectedText.length > 0) {
-        fallbackText += `📝 **Text found**: ${detectedText.slice(0, 3).join(', ')}\n\n`;
+        fallbackText += `📝 Text found: ${detectedText.slice(0, 3).join(', ')}\n\n`;
       }
       
       fallbackText += "💡 Look for license plates, road signs, and architectural styles to narrow down the location!";
@@ -552,12 +552,12 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
     }
     
     if (detectedText.length > 0) {
-      return `🤖 I can see some text but couldn't determine the location\n\n📝 **Text found**: ${detectedText.slice(0, 3).join(', ')}\n\n🔍 Try adjusting your view to capture more distinctive features!`;
+      return `🤖 I can see some text but couldn't determine the location\n\n📝 Text found: ${detectedText.slice(0, 3).join(', ')}\n\n🔍 Try adjusting your view to capture more distinctive features!`;
     }
     return "🤖 Unable to determine location from current view\n\n🔍 Try adjusting your view to capture more text, signs, or distinctive features!";
   }
 
-  let clueText = "🤖 **Location Analysis**:\n\n";
+  let clueText = "🤖 Location Analysis:\n\n";
   
   sortedGuesses.forEach((guess, index) => {
     const confidenceEmoji = {
@@ -567,7 +567,7 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
       'LOW': '📍'
     }[guess.confidence];
     
-    const priority = ['1st', '2nd', '3rd'][index];
+    const priority = ['1st', '2nd'][index];
     
     if (guess.region && guess.region !== guess.location) {
       clueText += `${confidenceEmoji} ${priority}: ${guess.location} (${guess.region})\n`;
@@ -579,13 +579,13 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
 
   // Add detected text if available
   if (detectedText.length > 0) {
-    clueText += `📝 **Text found**: ${detectedText.slice(0, 3).join(', ')}\n\n`;
+    clueText += `📝 Text found: ${detectedText.slice(0, 3).join(', ')}\n\n`;
   }
 
   // Add environmental features if detected
   const environmentalFeatures = getEnvironmentalFeatures(features.labels, features.objects);
   if (environmentalFeatures.length > 0) {
-    clueText += `🌿 **Environment**: ${environmentalFeatures.join(', ')}\n\n`;
+    clueText += `🌿 Environment: ${environmentalFeatures.join(', ')}\n\n`;
   }
 
   clueText += "💡 Look for license plates, road signs, and architectural styles to confirm!";
