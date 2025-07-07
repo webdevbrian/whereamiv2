@@ -512,7 +512,7 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
     
     const priority = ['1st', '2nd', '3rd'][index];
     
-    if (guess.region) {
+    if (guess.region && guess.region !== guess.location) {
       clueText += `${confidenceEmoji} ${priority}: ${guess.location} (${guess.region})\n`;
     } else {
       clueText += `${confidenceEmoji} ${priority}: ${guess.location}\n`;
