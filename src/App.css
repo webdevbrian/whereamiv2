@@ -1,0 +1,114 @@
+.app {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-screen {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-content h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.loading-content p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+.modal-content h2 {
+  color: #1f2937;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+.modal-content h1 {
+  color: #059669;
+  margin: 0.5rem 0;
+  font-size: 2.5rem;
+}
+
+.modal-content p {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.round-map {
+  width: 100%;
+  height: 200px;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border: 2px solid #e5e7eb;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.social-buttons a {
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.social-buttons .facebook {
+  background: #1877f2;
+  color: white;
+}
+
+.social-buttons .twitter {
+  background: #1da1f2;
+  color: white;
+}
+
+.social-buttons a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
