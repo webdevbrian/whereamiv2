@@ -160,7 +160,44 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
     <div className="modal-overlay">
       <div className="modal-content">
         <h2>Round {round.roundNumber} Results</h2>
-        <p>Your guess was <strong>{round.distance.toLocaleString()} km</strong> away from the actual location.</p>
+        
+        <div style={{ 
+          background: '#f0f9ff', 
+          padding: '1rem', 
+          borderRadius: '8px', 
+          margin: '1rem 0',
+          border: '1px solid #bae6fd'
+        }}>
+          <h3 style={{ 
+            color: '#0369a1', 
+            margin: '0 0 0.5rem 0', 
+            fontSize: '1.2rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            📏 Distance Analysis
+          </h3>
+          <div style={{ 
+            fontSize: '1.8rem', 
+            fontWeight: 'bold', 
+            color: '#0369a1',
+            margin: '0.5rem 0'
+          }}>
+            {round.distance.toLocaleString()} km away
+          </div>
+          <div style={{ 
+            fontSize: '0.9rem', 
+            color: '#6b7280',
+            fontStyle: 'italic'
+          }}>
+            {round.distance < 100 ? '🎯 Very close!' : 
+             round.distance < 500 ? '🎪 Pretty good!' : 
+             round.distance < 1000 ? '🎨 Getting there!' : 
+             round.distance < 2000 ? '📍 Not too bad!' : 
+             '🌍 Quite far, but you\'re learning!'}
+          </div>
+        </div>
         
         <div ref={mapRef} className="round-map" />
         
