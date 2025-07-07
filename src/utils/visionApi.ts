@@ -413,7 +413,12 @@ const analyzeTextContent = (textContent: string[]): Array<{
   confidence: 'HIGH' | 'MEDIUM' | 'LOW';
   reasoning: string;
 }> => {
-  const guesses = [];
+  const guesses: Array<{
+    location: string; 
+    region?: string; 
+    confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+    reasoning: string;
+  }> = [];
   
   // Look for country/region indicators in text
   const locationKeywords = {
@@ -455,7 +460,12 @@ const analyzeLogos = (logos: any[]): Array<{
   confidence: 'HIGH' | 'MEDIUM';
   reasoning: string;
 }> => {
-  const guesses = [];
+  const guesses: Array<{
+    location: string; 
+    region?: string; 
+    confidence: 'HIGH' | 'MEDIUM';
+    reasoning: string;
+  }> = [];
   
   // Regional brand associations
   const brandRegions: { [key: string]: { location: string, region?: string, confidence: 'HIGH' | 'MEDIUM' } } = {
@@ -491,7 +501,12 @@ const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): Arra
   confidence: 'MEDIUM' | 'LOW';
   reasoning: string;
 }> => {
-  const guesses = [];
+  const guesses: Array<{
+    location: string; 
+    region?: string; 
+    confidence: 'MEDIUM' | 'LOW';
+    reasoning: string;
+  }> = [];
   const allFeatures = [...labels, ...objects];
 
   // Vegetation-based regional indicators
