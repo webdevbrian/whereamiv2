@@ -257,27 +257,47 @@ const generateEnhancedClueFromVisionData = (visionResponses: any[]): string => {
 };
 
 const filterGoogleCopyright = (text: string): string | null => {
-  // Remove Google copyright and watermark text
+  // Remove Google copyright and watermark text - more comprehensive filtering
   const googleTerms = [
     'google',
+    'gle', // Common OCR misread of "Google"
     '© google',
+    '©google',
+    'google inc',
+    'google llc',
     'google 2022',
     'google 2023',
     'google 2024',
     'google 2025',
+    '2022',
+    '2023', 
+    '2024',
+    '2025',
+    '02022',
+    '02023',
+    '02024', 
+    '02025',
     '©',
     'copyright',
     'street view',
     'streetview',
     'maps',
+    'map data',
+    'mapdata',
     'imagery',
+    'image',
     'satellite',
-    'data'
+    'data',
+    'terms',
+    'report',
+    'problem',
+    'keyboard',
+    'shortcuts'
   ];
   
   let filteredText = text.trim();
   
-  // Remove lines that are just copyright info
+  // Split by common separators and filter each part
   const lines = filteredText.split('\n');
   const filteredLines = lines.filter(line => {
     const cleanLine = line.trim().toLowerCase();
@@ -285,15 +305,20 @@ const filterGoogleCopyright = (text: string): string | null => {
     // Skip empty lines
     if (cleanLine.length === 0) return false;
     
-    // Skip lines that are just years
-    if (/^\d{4}$/.test(cleanLine)) return false;
+    // Skip lines that are just years or partial years
+    if (/^0?\d{4}$/.test(cleanLine)) return false;
+    
+    // Skip very short fragments that are likely OCR errors from Google watermark
+    if (cleanLine.length <= 3 && /^[gl©e,\s\d]+$/.test(cleanLine)) return false;
     
     // Skip lines that contain only Google copyright terms
     const isGoogleCopyright = googleTerms.some(term => {
       return cleanLine === term || 
              cleanLine.startsWith(term + ' ') || 
              cleanLine.endsWith(' ' + term) ||
-             (cleanLine.length <= 15 && cleanLine.includes(term));
+             (cleanLine.length <= 20 && cleanLine.includes(term)) ||
+             // Handle common OCR misreads like "gle, 02024, gle"
+             /^[gl©e,\s\d]+$/.test(cleanLine);
     });
     
     return !isGoogleCopyright;
@@ -301,11 +326,20 @@ const filterGoogleCopyright = (text: string): string | null => {
   
   filteredText = filteredLines.join(' ').trim();
   
-  // Additional cleanup for remaining Google terms in longer text
+  // Additional cleanup for remaining Google terms and OCR artifacts
   googleTerms.forEach(term => {
     const regex = new RegExp(`\\b${term}\\b`, 'gi');
     filteredText = filteredText.replace(regex, '').trim();
   });
+  
+  // Remove common OCR artifacts from Google watermark
+  filteredText = filteredText
+    .replace(/\bgle\b/gi, '') // Common misread of "Google"
+    .replace(/\b0?202[2-5]\b/g, '') // Years with or without leading zero
+    .replace(/[©,]+/g, '') // Copyright symbols and commas
+    .replace(/\s+/g, ' ') // Multiple spaces
+    .replace(/^[,\s]+|[,\s]+$/g, '') // Leading/trailing punctuation
+    .trim();
   
   // Clean up extra spaces and punctuation
   filteredText = filteredText
@@ -494,8 +528,31 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
 
   // Generate the enhanced clue text
   if (sortedGuesses.length === 0) {
+    // Fall back on vegetation and environmental features when no strong location indicators
+    const environmentalFeatures = getEnvironmentalFeatures(features.labels, features.objects);
+    const vegetationGuess = getVegetationBasedGuess(features.labels, features.objects);
+    
+    if (vegetationGuess || environmentalFeatures.length > 0) {
+      let fallbackText = "🤖 **Environmental Analysis**:\n\n";
+      
+      if (vegetationGuess) {
+        fallbackText += `🌿 ${vegetationGuess}\n\n`;
+      }
+      
+      if (environmentalFeatures.length > 0) {
+        fallbackText += `🏞️ **Environment**: ${environmentalFeatures.join(', ')}\n\n`;
+      }
+      
+      if (detectedText.length > 0) {
+        fallbackText += `📝 **Text found**: ${detectedText.slice(0, 3).join(', ')}\n\n`;
+      }
+      
+      fallbackText += "💡 Look for license plates, road signs, and architectural styles to narrow down the location!";
+      return fallbackText;
+    }
+    
     if (detectedText.length > 0) {
-      return `🤖 I can see some text but couldn't determine the location\n\n📝 **Text found**: ${detectedText.join(', ')}\n\n🔍 Try adjusting your view to capture more distinctive features!`;
+      return `🤖 I can see some text but couldn't determine the location\n\n📝 **Text found**: ${detectedText.slice(0, 3).join(', ')}\n\n🔍 Try adjusting your view to capture more distinctive features!`;
     }
     return "🤖 Unable to determine location from current view\n\n🔍 Try adjusting your view to capture more text, signs, or distinctive features!";
   }
@@ -586,6 +643,42 @@ const getEnvironmentalFeatures = (labels: string[], objects: string[]): string[]
 
   return features.slice(0, 3); // Limit to 3 most relevant features
 };
+
+const getVegetationBasedGuess = (labels: string[], objects: string[]): string | null => {
+  const allFeatures = [...labels, ...objects];
+
+  // Tropical indicators
+  if (allFeatures.some(f => ['palm', 'coconut', 'tropical', 'banana', 'mango'].some(term => f.includes(term)))) {
+    return "Tropical climate suggests: Caribbean, Southeast Asia, Southern US, or Pacific islands";
+  }
+
+  // Temperate forest indicators
+  if (allFeatures.some(f => ['oak', 'maple', 'deciduous', 'autumn', 'fall'].some(term => f.includes(term)))) {
+    return "Deciduous forest suggests: Eastern US, Europe, or temperate regions";
+  }
+
+  // Coniferous forest indicators
+  if (allFeatures.some(f => ['pine', 'spruce', 'fir', 'conifer', 'evergreen'].some(term => f.includes(term)))) {
+    return "Coniferous forest suggests: Northern regions like Canada, Scandinavia, or Russia";
+  }
+
+  // Mediterranean indicators
+  if (allFeatures.some(f => ['olive', 'cypress', 'lavender', 'rosemary'].some(term => f.includes(term)))) {
+    return "Mediterranean vegetation suggests: Southern Europe, California, or similar climate zones";
+  }
+
+  // Desert indicators
+  if (allFeatures.some(f => ['cactus', 'desert', 'arid', 'succulent', 'sage'].some(term => f.includes(term)))) {
+    return "Desert vegetation suggests: Southwestern US, Mexico, Australia, or Middle East";
+  }
+
+  // Grassland indicators
+  if (allFeatures.some(f => ['prairie', 'grassland', 'wheat', 'corn', 'farmland'].some(term => f.includes(term)))) {
+    return "Agricultural landscape suggests: Midwest US, Central Europe, or farming regions";
+  }
+
+  return null;
+};
 const analyzeTextContent = (textContent: string[]): LocationGuess[] => {
   const guesses: LocationGuess[] = [];
   
@@ -658,6 +751,10 @@ const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): Loca
   const guesses: LocationGuess[] = [];
   const allFeatures = [...labels, ...objects];
 
+  // Vehicle and transportation analysis for regional identification
+  const vehicleAnalysis = analyzeVehicleFeatures(allFeatures);
+  guesses.push(...vehicleAnalysis);
+
   // Vegetation-based regional indicators
   if (allFeatures.some(feature => ['palm', 'coconut', 'tropical'].some(term => feature.includes(term)))) {
     guesses.push({
@@ -677,6 +774,16 @@ const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): Loca
     });
   }
 
+  // Desert and arid climate indicators
+  if (allFeatures.some(feature => ['desert', 'cactus', 'arid', 'sand', 'dune'].some(term => feature.includes(term)))) {
+    guesses.push({
+      location: 'Arid/Desert region',
+      region: 'Southwestern US, Middle East, Australia, or North Africa',
+      confidence: 'MEDIUM',
+      reasoning: 'Desert landscape and arid vegetation detected'
+    });
+  }
+
   // Architectural style indicators
   if (allFeatures.some(feature => ['pagoda', 'temple', 'shrine'].some(term => feature.includes(term)))) {
     guesses.push({
@@ -687,12 +794,13 @@ const analyzeEnvironmentalFeatures = (labels: string[], objects: string[]): Loca
     });
   }
 
-  // Vehicle and infrastructure indicators
-  if (allFeatures.some(feature => ['double decker', 'red bus'].some(term => feature.includes(term)))) {
+  // European architectural indicators
+  if (allFeatures.some(feature => ['gothic', 'baroque', 'medieval', 'castle', 'cathedral'].some(term => feature.includes(term)))) {
     guesses.push({
-      location: 'United Kingdom',
+      location: 'Europe',
+      region: 'Western or Central Europe',
       confidence: 'MEDIUM',
-      reasoning: 'British-style bus detected'
+      reasoning: 'European architectural style detected'
     });
   }
 
@@ -712,4 +820,121 @@ const getLanguageName = (code: string): string => {
     'lt': 'Lithuanian'
   };
   return languageNames[code] || code.toUpperCase();
+};
+
+const analyzeVehicleFeatures = (features: string[]): LocationGuess[] => {
+  const guesses: LocationGuess[] = [];
+
+  // European vehicle indicators
+  if (features.some(f => ['mercedes', 'bmw', 'audi', 'volkswagen', 'volvo', 'peugeot', 'renault', 'fiat'].some(brand => f.includes(brand)))) {
+    guesses.push({
+      location: 'Europe',
+      region: 'Likely Germany, France, Italy, or Scandinavia',
+      confidence: 'HIGH',
+      reasoning: 'European vehicle brands detected'
+    });
+  }
+
+  // American vehicle indicators
+  if (features.some(f => ['ford', 'chevrolet', 'dodge', 'cadillac', 'lincoln', 'jeep'].some(brand => f.includes(brand)))) {
+    guesses.push({
+      location: 'North America',
+      region: 'United States or Canada',
+      confidence: 'HIGH',
+      reasoning: 'American vehicle brands detected'
+    });
+  }
+
+  // Japanese vehicle indicators
+  if (features.some(f => ['toyota', 'honda', 'nissan', 'mazda', 'subaru', 'mitsubishi', 'suzuki'].some(brand => f.includes(brand)))) {
+    guesses.push({
+      location: 'Asia-Pacific region',
+      region: 'Japan, Southeast Asia, or Australia',
+      confidence: 'MEDIUM',
+      reasoning: 'Japanese vehicle brands detected'
+    });
+  }
+
+  // Korean vehicle indicators
+  if (features.some(f => ['hyundai', 'kia', 'genesis'].some(brand => f.includes(brand)))) {
+    guesses.push({
+      location: 'Asia or global market',
+      region: 'South Korea or international location',
+      confidence: 'MEDIUM',
+      reasoning: 'Korean vehicle brands detected'
+    });
+  }
+
+  // Truck and commercial vehicle analysis
+  if (features.some(f => ['truck', 'lorry', 'semi', 'trailer'].some(term => f.includes(term)))) {
+    // European truck characteristics
+    if (features.some(f => ['scania', 'volvo truck', 'man truck', 'mercedes truck', 'iveco'].some(brand => f.includes(brand)))) {
+      guesses.push({
+        location: 'Europe',
+        region: 'European trucking indicates EU region',
+        confidence: 'HIGH',
+        reasoning: 'European commercial vehicles detected'
+      });
+    }
+    // American truck characteristics
+    else if (features.some(f => ['peterbilt', 'kenworth', 'freightliner', 'mack truck'].some(brand => f.includes(brand)))) {
+      guesses.push({
+        location: 'North America',
+        region: 'United States or Canada',
+        confidence: 'HIGH',
+        reasoning: 'American commercial vehicles detected'
+      });
+    }
+  }
+
+  // Bus and public transport indicators
+  if (features.some(f => ['double decker', 'red bus'].some(term => f.includes(term)))) {
+    guesses.push({
+      location: 'United Kingdom',
+      region: 'England, Scotland, Wales, or Northern Ireland',
+      confidence: 'HIGH',
+      reasoning: 'British-style double-decker bus detected'
+    });
+  }
+
+  // Taxi indicators
+  if (features.some(f => ['yellow cab', 'yellow taxi'].some(term => f.includes(term)))) {
+    guesses.push({
+      location: 'United States',
+      region: 'Likely New York City or major US city',
+      confidence: 'HIGH',
+      reasoning: 'Yellow taxi cab detected'
+    });
+  }
+
+  if (features.some(f => ['black cab', 'london taxi'].some(term => f.includes(term)))) {
+    guesses.push({
+      location: 'United Kingdom',
+      region: 'London or major UK city',
+      confidence: 'HIGH',
+      reasoning: 'British black cab detected'
+    });
+  }
+
+  // Motorcycle and scooter indicators
+  if (features.some(f => ['vespa', 'scooter'].some(term => f.includes(term)))) {
+    guesses.push({
+      location: 'Mediterranean region',
+      region: 'Italy, Greece, or Southern Europe',
+      confidence: 'MEDIUM',
+      reasoning: 'Scooter culture suggests Mediterranean region'
+    });
+  }
+
+  // Bicycle infrastructure indicators
+  if (features.some(f => ['bicycle lane', 'bike lane', 'cycling'].some(term => f.includes(term)))) {
+    guesses.push({
+      location: 'Northern Europe',
+      region: 'Netherlands, Denmark, or Germany',
+      confidence: 'MEDIUM',
+      reasoning: 'Extensive cycling infrastructure detected'
+    });
+  }
+
+  return guesses;
 };
