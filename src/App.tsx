@@ -195,6 +195,7 @@ function App() {
       <MiniMap 
         onMapClick={memoizedMapClick}
         guessLocation={guessLocation}
+        resetTrigger={gameState.currentRound}
       />
       
       <ScoreBoard 

@@ -3,9 +3,10 @@ import { useEffect, useRef, memo } from 'react';
 interface MiniMapProps {
   onMapClick: (latLng: google.maps.LatLng) => void;
   guessLocation: google.maps.LatLng | null;
+  resetTrigger?: number;
 }
 
-const MiniMap: React.FC<MiniMapProps> = memo(({ onMapClick, guessLocation }) => {
+const MiniMap: React.FC<MiniMapProps> = memo(({ onMapClick, guessLocation, resetTrigger }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
@@ -33,6 +34,14 @@ const MiniMap: React.FC<MiniMapProps> = memo(({ onMapClick, guessLocation }) => 
       }
     });
   }, [onMapClick]);
+
+  // Reset map zoom and center when resetTrigger changes
+  useEffect(() => {
+    if (mapInstanceRef.current && resetTrigger !== undefined) {
+      mapInstanceRef.current.setZoom(1);
+      mapInstanceRef.current.setCenter(new google.maps.LatLng(0, 0));
+    }
+  }, [resetTrigger]);
 
   useEffect(() => {
     if (!mapInstanceRef.current) return;
