@@ -526,7 +526,7 @@ const generateAdvancedRegionalGuesses = (features: any): string => {
   }
 
   // Add environmental features if detected
-  const environmentalFeatures = getEnvironmentalFeatures(features.labels, features.objects);
+  const environmentalFeatures = getEnvironmentalFeatures(combinedFeatures.labels, combinedFeatures.objects);
   if (environmentalFeatures.length > 0) {
     clueText += `🌿 **Environment**: ${environmentalFeatures.join(', ')}\n\n`;
   }
