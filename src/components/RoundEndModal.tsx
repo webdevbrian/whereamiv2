@@ -191,11 +191,7 @@ const RoundEndModal: React.FC<RoundEndModalProps> = ({ round, onContinue }) => {
             color: '#6b7280',
             fontStyle: 'italic'
           }}>
-            {round.distance < 100 ? '🎯 Very close!' : 
-             round.distance < 500 ? '🎪 Pretty good!' : 
-             round.distance < 1000 ? '🎨 Getting there!' : 
-             round.distance < 2000 ? '📍 Not too bad!' : 
-             '🌍 Quite far, but you\'re learning!'}
+            Distance between your guess and the actual location
           </div>
         </div>
         
