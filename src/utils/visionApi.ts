@@ -10,19 +10,6 @@ export const analyzeStreetViewImage = async (panorama: google.maps.StreetViewPan
 
   try {
     // Capture the current Street View as an image
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Could not create canvas context');
-
-    // Get the Street View container
-    const streetViewContainer = panorama.getDiv();
-    if (!streetViewContainer) throw new Error('Could not find Street View container');
-
-    // Use html2canvas alternative - capture via canvas
-    canvas.width = 640;
-    canvas.height = 480;
-
-    // Create a data URL from the Street View using html2canvas
     const imageData = await captureStreetView(panorama);
     
     // Prepare the Vision API request
@@ -75,10 +62,39 @@ export const analyzeStreetViewImage = async (panorama: google.maps.StreetViewPan
 
 const captureStreetView = async (panorama: google.maps.StreetViewPanorama): Promise<string> => {
   try {
-    // Get the Street View div
-    const streetViewDiv = panorama.getDiv();
+    // Get the Street View div using the panorama's container
+    const streetViewDiv = (panorama as any).getDiv?.() || document.querySelector('[data-street-view]') as HTMLElement;
+    
     if (!streetViewDiv) {
-      throw new Error('Could not find Street View container');
+      // Fallback: try to find the Street View container in the DOM
+      const containers = document.querySelectorAll('div[style*="position"]');
+      let foundContainer: HTMLElement | null = null;
+      
+      for (const container of containers) {
+        const element = container as HTMLElement;
+        if (element.style.position === 'absolute' && 
+            element.style.width === '100%' && 
+            element.style.height === '100%') {
+          foundContainer = element;
+          break;
+        }
+      }
+      
+      if (!foundContainer) {
+        throw new Error('Could not find Street View container');
+      }
+      
+      // Use html2canvas to capture the Street View
+      const canvas = await html2canvas(foundContainer, {
+        width: 640,
+        height: 480,
+        useCORS: true,
+        allowTaint: true,
+        scale: 1,
+        logging: false
+      });
+
+      return canvas.toDataURL('image/jpeg', 0.8);
     }
 
     // Use html2canvas to capture the Street View
@@ -150,19 +166,19 @@ const generateClueFromVisionData = (visionResponse: any): string => {
       .map((label: any) => label.description.toLowerCase());
 
     // Look for driving side clues
-    if (relevantLabels.some(label => label.includes('car') || label.includes('vehicle') || label.includes('road'))) {
+    if (relevantLabels.some((label: string) => label.includes('car') || label.includes('vehicle') || label.includes('road'))) {
       clues.push("I can see vehicles and roads");
     }
 
     // Look for architectural clues
     const architecturalTerms = ['building', 'architecture', 'house', 'structure'];
-    if (relevantLabels.some(label => architecturalTerms.some(term => label.includes(term)))) {
+    if (relevantLabels.some((label: string) => architecturalTerms.some(term => label.includes(term)))) {
       clues.push("The architecture might give away the region");
     }
 
     // Look for vegetation clues
     const vegetationTerms = ['tree', 'plant', 'vegetation', 'palm', 'pine'];
-    if (relevantLabels.some(label => vegetationTerms.some(term => label.includes(term)))) {
+    if (relevantLabels.some((label: string) => vegetationTerms.some(term => label.includes(term)))) {
       clues.push("The vegetation suggests a specific climate zone");
     }
   }

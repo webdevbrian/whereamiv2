@@ -55,6 +55,7 @@ const StreetView: React.FC<StreetViewProps> = ({ location, onPanoramaLoad }) => 
   return (
     <div
       ref={streetViewRef}
+      data-street-view="true"
       style={{
         width: '100%',
         height: '100%',
