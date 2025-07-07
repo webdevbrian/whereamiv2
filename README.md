@@ -1,9 +1,9 @@
-Whereami?
+Whereami? (version 2!)
 ========
 
 ![Whereami version 2!](https://i.imgur.com/TfgrDGY.png)
 
-This is a recreation of my original clon of geoguessr I made almost 13 years ago. It's now rebuilt in react and deployed on vercel Check it out here! -> https://whereamiv2.vercel.app/.
+This is a recreation of my original clon of geoguessr I made almost 13 years ago (repo for that is here: https://github.com/webdevbrian/whereami). It's now rebuilt in react and deployed on vercel Check it out here! -> https://whereamiv2.vercel.app/.
 
 # Description
 Idea based off of geoguessr. This was a weekend project I did just to come up with a first version. Feel free to pull, and add PRs on bugs you find (I know there are quite a few, which I'll get around to fiddling with on rainy days!).
