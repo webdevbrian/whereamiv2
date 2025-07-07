@@ -157,36 +157,91 @@ const generateClueFromVisionData = (visionResponse: any): string => {
 };
 
 const generateRegionalGuesses = (features: any): string => {
-  const guesses: Array<{ region: string; confidence: 'HIGH' | 'MEDIUM'; reasoning: string }> = [];
+  const guesses: Array<{ country: string; region?: string; confidence: 'HIGH' | 'MEDIUM' }> = [];
   
   // Language-based guesses (highest confidence)
   if (features.languages.size > 0) {
     const languages = Array.from(features.languages) as string[];
     
     languages.forEach((lang: string) => {
-      const languageRegions: { [key: string]: { regions: string[], confidence: 'HIGH' | 'MEDIUM' } } = {
-        'ru': { regions: ['Russia', 'Eastern Europe (Ukraine, Belarus)'], confidence: 'HIGH' },
-        'zh': { regions: ['China', 'Taiwan'], confidence: 'HIGH' },
-        'ja': { regions: ['Japan'], confidence: 'HIGH' },
-        'ko': { regions: ['South Korea'], confidence: 'HIGH' },
-        'ar': { regions: ['Middle East', 'North Africa'], confidence: 'HIGH' },
-        'hi': { regions: ['India'], confidence: 'HIGH' },
-        'th': { regions: ['Thailand'], confidence: 'HIGH' },
-        'de': { regions: ['Germany', 'Austria', 'Switzerland'], confidence: 'MEDIUM' },
-        'fr': { regions: ['France', 'Belgium', 'Switzerland'], confidence: 'MEDIUM' },
-        'es': { regions: ['Spain', 'Latin America'], confidence: 'MEDIUM' },
-        'pt': { regions: ['Portugal', 'Brazil'], confidence: 'MEDIUM' },
-        'it': { regions: ['Italy'], confidence: 'MEDIUM' },
-        'en': { regions: ['English-speaking countries'], confidence: 'MEDIUM' }
+      const languageCountries: { [key: string]: { countries: Array<{country: string, region?: string}>, confidence: 'HIGH' | 'MEDIUM' } } = {
+        'ru': { 
+          countries: [
+            { country: 'Russia' },
+            { country: 'Ukraine' },
+            { country: 'Belarus' }
+          ], 
+          confidence: 'HIGH' 
+        },
+        'zh': { 
+          countries: [
+            { country: 'China' },
+            { country: 'Taiwan' }
+          ], 
+          confidence: 'HIGH' 
+        },
+        'ja': { countries: [{ country: 'Japan' }], confidence: 'HIGH' },
+        'ko': { countries: [{ country: 'South Korea' }], confidence: 'HIGH' },
+        'ar': { 
+          countries: [
+            { country: 'Saudi Arabia' },
+            { country: 'UAE' },
+            { country: 'Egypt' }
+          ], 
+          confidence: 'HIGH' 
+        },
+        'hi': { countries: [{ country: 'India' }], confidence: 'HIGH' },
+        'th': { countries: [{ country: 'Thailand' }], confidence: 'HIGH' },
+        'de': { 
+          countries: [
+            { country: 'Germany' },
+            { country: 'Austria' },
+            { country: 'Switzerland' }
+          ], 
+          confidence: 'MEDIUM' 
+        },
+        'fr': { 
+          countries: [
+            { country: 'France' },
+            { country: 'Belgium' },
+            { country: 'Switzerland' }
+          ], 
+          confidence: 'MEDIUM' 
+        },
+        'es': { 
+          countries: [
+            { country: 'Spain' },
+            { country: 'Mexico' },
+            { country: 'Argentina' }
+          ], 
+          confidence: 'MEDIUM' 
+        },
+        'pt': { 
+          countries: [
+            { country: 'Brazil' },
+            { country: 'Portugal' }
+          ], 
+          confidence: 'MEDIUM' 
+        },
+        'it': { countries: [{ country: 'Italy' }], confidence: 'MEDIUM' },
+        'en': { 
+          countries: [
+            { country: 'United States' },
+            { country: 'United Kingdom' },
+            { country: 'Canada' },
+            { country: 'Australia' }
+          ], 
+          confidence: 'MEDIUM' 
+        }
       };
       
-      if (languageRegions[lang]) {
-        const { regions, confidence } = languageRegions[lang];
-        regions.forEach(region => {
+      if (languageCountries[lang]) {
+        const { countries, confidence } = languageCountries[lang];
+        countries.slice(0, 2).forEach(location => {
           guesses.push({
-            region,
+            country: location.country,
+            region: location.region,
             confidence,
-            reasoning: `Cyrillic/Asian/Arabic script detected` // Will be refined below
           });
         });
       }
@@ -195,53 +250,31 @@ const generateRegionalGuesses = (features: any): string => {
   
   // Landmark-based guesses (very high confidence)
   if (features.landmarks.length > 0) {
-    features.landmarks.slice(0, 2).forEach((landmark: any) => {
+    features.landmarks.slice(0, 1).forEach((landmark: any) => {
       guesses.push({
-        region: `Near ${landmark.description}`,
+        country: 'Location identified',
+        region: landmark.description,
         confidence: 'HIGH',
-        reasoning: 'Landmark recognition'
       });
     });
   }
   
-  // Architecture and environment-based guesses (lower confidence)
+  // Environmental clues for broader regional guesses
   // Palm trees suggest tropical/subtropical regions
   if (features.labels.some((label: string) => label.includes('palm'))) {
     guesses.push({
-      region: 'Tropical/subtropical region (Southern US, Mediterranean, Southeast Asia)',
+      country: 'Tropical region',
+      region: 'Southern US, Mediterranean, or Southeast Asia',
       confidence: 'MEDIUM',
-      reasoning: 'Palm trees visible'
     });
   }
   
   // Pine/coniferous trees suggest northern regions
   if (features.labels.some((label: string) => ['pine', 'conifer', 'evergreen'].some(term => label.includes(term)))) {
     guesses.push({
-      region: 'Northern regions (Scandinavia, Canada, Northern US, Russia)',
+      country: 'Northern region',
+      region: 'Scandinavia, Canada, Northern US, or Russia',
       confidence: 'MEDIUM',
-      reasoning: 'Coniferous vegetation'
-    });
-  }
-  
-  // Road and vehicle analysis
-  const vehicleClues = features.labels.filter((label: string) => 
-    ['car', 'vehicle', 'truck', 'road', 'street'].some(term => label.includes(term))
-  );
-  
-  if (vehicleClues.length > 0) {
-    guesses.push({
-      region: 'Developed country with modern infrastructure',
-      confidence: 'MEDIUM',
-      reasoning: 'Modern vehicles and roads visible'
-    });
-  }
-  
-  // Logo-based guesses
-  if (features.logos.length > 0) {
-    guesses.push({
-      region: 'Commercial area in developed country',
-      confidence: 'MEDIUM',
-      reasoning: 'Commercial signage detected'
     });
   }
   
@@ -253,39 +286,21 @@ const generateRegionalGuesses = (features: any): string => {
   
   // Generate the clue text
   if (sortedGuesses.length === 0) {
-    return "🤖 I'm having trouble identifying specific regional clues from this view. Look for text, license plates, architectural styles, or vegetation that might indicate the location!";
+    return "🤖 **My location guess**: Unable to determine from current view\n\n🔍 **Confidence**: LOW - No clear identifying features detected";
   }
   
-  let clueText = "🤖 Based on what I can see:\n\n";
+  let clueText = "🤖 **My location guesses**:\n\n";
   
-  sortedGuesses.forEach((guess) => {
+  sortedGuesses.forEach((guess, index) => {
     const confidenceEmoji = guess.confidence === 'HIGH' ? '🎯' : '🎪';
-    clueText += `${confidenceEmoji} **${guess.confidence} CONFIDENCE**: This could be ${guess.region}\n`;
+    const priority = index === 0 ? '1st' : index === 1 ? '2nd' : '3rd';
+    
+    if (guess.region) {
+      clueText += `${confidenceEmoji} **${priority} guess**: ${guess.country} (${guess.region}) - ${guess.confidence} confidence\n`;
+    } else {
+      clueText += `${confidenceEmoji} **${priority} guess**: ${guess.country} - ${guess.confidence} confidence\n`;
+    }
   });
   
-  // Add specific observations
-  const observations: string[] = [];
-  
-  if (features.languages.size > 0) {
-    const languageNames = Array.from(features.languages).map((lang: unknown) => {
-      const langCode = lang as string;
-      const langMap: { [key: string]: string } = {
-        'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German',
-        'it': 'Italian', 'pt': 'Portuguese', 'ru': 'Russian', 'ja': 'Japanese',
-        'ko': 'Korean', 'zh': 'Chinese', 'ar': 'Arabic', 'hi': 'Hindi', 'th': 'Thai'
-      };
-      return langMap[langCode] || langCode;
-    });
-    observations.push(`Text detected in: ${languageNames.join(', ')}`);
-  }
-  
-  if (features.landmarks.length > 0) {
-    observations.push(`Landmarks: ${features.landmarks.map((l: any) => l.description).join(', ')}`);
-  }
-  
-  if (observations.length > 0) {
-    clueText += `\n📋 **Key observations**: ${observations.join(' • ')}`;
-  }
-
   return clueText;
 };
