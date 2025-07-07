@@ -23,13 +23,18 @@ const StreetView: React.FC<StreetViewProps> = ({ location, onPanoramaLoad }) => 
             position: location,
             addressControl: false,
             linksControl: false,
+            panControl: false,
+            zoomControl: false,
+            fullscreenControl: false,
+            enableCloseButton: false,
             pov: {
               heading: 270,
               pitch: -10
             },
             visible: true,
             motionTracking: false,
-            motionTrackingControl: false
+            motionTrackingControl: false,
+            showRoadLabels: false
           };
 
           if (panoramaRef.current) {
