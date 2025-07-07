@@ -177,7 +177,7 @@ const generateRegionalGuesses = (features: any): string => {
         'es': { regions: ['Spain', 'Latin America'], confidence: 'MEDIUM' },
         'pt': { regions: ['Portugal', 'Brazil'], confidence: 'MEDIUM' },
         'it': { regions: ['Italy'], confidence: 'MEDIUM' },
-        'en': { regions: ['English-speaking countries'], confidence: 'LOW' }
+        'en': { regions: ['English-speaking countries'], confidence: 'MEDIUM' }
       };
       
       if (languageRegions[lang]) {
@@ -246,7 +246,7 @@ const generateRegionalGuesses = (features: any): string => {
   }
   
   // Sort by confidence and take top 3
-  const confidenceOrder = { 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
+  const confidenceOrder = { 'HIGH': 3, 'MEDIUM': 2 };
   const sortedGuesses = guesses
     .sort((a, b) => confidenceOrder[b.confidence] - confidenceOrder[a.confidence])
     .slice(0, 3);
