@@ -9,6 +9,7 @@ import Timer from './components/Timer';
 import GuessButton from './components/GuessButton';
 import RoundEndModal from './components/RoundEndModal';
 import GameEndModal from './components/GameEndModal';
+import StartGameModal from './components/StartGameModal';
 import { calculateDistance, calculatePoints } from './utils/scoring';
 import './App.css';
 
@@ -23,7 +24,8 @@ function App() {
     isGameEnded: false,
     isRoundEnded: false,
     timerCount: TIMER_DURATION,
-    isTimerRunning: false
+    isTimerRunning: false,
+    hasGameStarted: false
   });
 
   const [currentLocation, setCurrentLocation] = useState<google.maps.LatLng | null>(null);
@@ -76,10 +78,10 @@ function App() {
 
   // Initialize first round when maps are loaded
   useEffect(() => {
-    if (mapsLoaded && gameState.currentRound === 1 && gameState.rounds.length === 0) {
+    if (mapsLoaded && gameState.currentRound === 1 && gameState.rounds.length === 0 && gameState.hasGameStarted) {
       initializeRound();
     }
-  }, [mapsLoaded, gameState.currentRound, gameState.rounds.length, initializeRound]);
+  }, [mapsLoaded, gameState.currentRound, gameState.rounds.length, gameState.hasGameStarted, initializeRound]);
 
   const handleTimeUp = () => {
     setGameState(prev => ({ ...prev, isTimerRunning: false }));
@@ -142,9 +144,13 @@ function App() {
       isGameEnded: false,
       isRoundEnded: false,
       timerCount: TIMER_DURATION,
-      isTimerRunning: false
+      isTimerRunning: false,
+      hasGameStarted: false
     });
-    initializeRound();
+  };
+
+  const startGame = () => {
+    setGameState(prev => ({ ...prev, hasGameStarted: true }));
   };
 
   const handleMapClick = (latLng: google.maps.LatLng) => {
@@ -153,6 +159,22 @@ function App() {
 
   // Memoize the map click handler to prevent unnecessary re-renders
   const memoizedMapClick = useMemo(() => handleMapClick, []);
+
+  if (!mapsLoaded) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-content">
+          <h1>Loading Whereami...</h1>
+          <p>Preparing your geography challenge</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!gameState.hasGameStarted) {
+    return <StartGameModal onStartGame={startGame} />;
+  }
+
   if (!mapsLoaded) {
     return (
       <div className="loading-screen">

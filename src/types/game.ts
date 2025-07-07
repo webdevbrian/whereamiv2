@@ -15,4 +15,5 @@ export interface GameState {
   isRoundEnded: boolean;
   timerCount: number;
   isTimerRunning: boolean;
+  hasGameStarted: boolean;
 }
