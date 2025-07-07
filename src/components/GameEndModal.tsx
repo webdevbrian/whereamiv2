@@ -59,13 +59,13 @@ const GameEndModal: React.FC<GameEndModalProps> = ({ totalScore, onPlayAgain }) 
                   width: '10px',
                   height: '10px',
                   backgroundColor: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'][i % 6],
-                  left: `${40 + Math.random() * 20}%`,
+                  left: `${20 + Math.random() * 60}%`,
                   bottom: '0px',
-                  animationName: 'confetti-explode',
+                  animationName: `confetti-explode-${i}`,
                   animationDuration: '3s',
-                  animationTimingFunction: 'linear',
+                  animationTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                   animationIterationCount: '1',
-                  animationDelay: `${Math.random() * 2}s`,
+                  animationDelay: `${Math.random() * 0.5}s`,
                   borderRadius: '50%',
                   animationFillMode: 'forwards'
                 }}
@@ -107,20 +107,34 @@ const GameEndModal: React.FC<GameEndModalProps> = ({ totalScore, onPlayAgain }) 
         
         <style>
           {`
-            @keyframes confetti-explode {
-              0% {
-                transform: translateY(0) translateX(0) rotate(0deg);
-                opacity: 1;
-              }
-             30% {
-                transform: translateY(-${200 + Math.random() * 200}px) translateX(${(Math.random() - 0.5) * 400}px) rotate(180deg);
-                opacity: 1;
-             }
-              100% {
-                transform: translateY(100px) translateX(${(Math.random() - 0.5) * 400}px) rotate(720deg);
-                opacity: 0.3;
-              }
-            }
+            ${Array.from({ length: 50 }).map((_, i) => {
+              const randomX1 = (Math.random() - 0.5) * 300; // Random horizontal spread
+              const randomY1 = -(150 + Math.random() * 200); // Random peak height
+              const randomX2 = randomX1 + (Math.random() - 0.5) * 100; // Drift during fall
+              const randomY2 = 50 + Math.random() * 100; // Random fall distance
+              const randomRotation = 360 + Math.random() * 720; // Random rotation
+              
+              return `
+                @keyframes confetti-explode-${i} {
+                  0% {
+                    transform: translateY(0) translateX(0) rotate(0deg);
+                    opacity: 1;
+                  }
+                  25% {
+                    transform: translateY(${randomY1 * 0.7}px) translateX(${randomX1 * 0.7}px) rotate(${randomRotation * 0.3}deg);
+                    opacity: 1;
+                  }
+                  50% {
+                    transform: translateY(${randomY1}px) translateX(${randomX1}px) rotate(${randomRotation * 0.6}deg);
+                    opacity: 1;
+                  }
+                  100% {
+                    transform: translateY(${randomY2}px) translateX(${randomX2}px) rotate(${randomRotation}deg);
+                    opacity: 0;
+                  }
+                }
+              `;
+            }).join('')}
           `}
         </style>
       </div>
