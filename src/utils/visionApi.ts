@@ -116,99 +116,183 @@ const captureStreetViewStatic = async (panorama: google.maps.StreetViewPanorama)
 };
 
 const generateClueFromVisionData = (visionResponse: any): string => {
-  const clues: string[] = [];
+  const detectedFeatures = {
+    languages: new Set<string>(),
+    landmarks: [] as any[],
+    labels: [] as string[],
+    logos: [] as any[]
+  };
   
   // Process text detection
   if (visionResponse.textAnnotations && visionResponse.textAnnotations.length > 0) {
     const texts = visionResponse.textAnnotations.slice(1, 4); // Skip the first one (full text)
-    const languages = new Set<string>();
     
     texts.forEach((text: any) => {
       if (text.locale) {
-        languages.add(text.locale);
+        detectedFeatures.languages.add(text.locale);
       }
     });
-
-    if (languages.size > 0) {
-      const languageNames = Array.from(languages).map(lang => {
-        const langMap: { [key: string]: string } = {
-          'en': 'English',
-          'es': 'Spanish',
-          'fr': 'French',
-          'de': 'German',
-          'it': 'Italian',
-          'pt': 'Portuguese',
-          'ru': 'Russian',
-          'ja': 'Japanese',
-          'ko': 'Korean',
-          'zh': 'Chinese',
-          'ar': 'Arabic',
-          'hi': 'Hindi'
-        };
-        return langMap[lang] || lang;
-      });
-      clues.push(`I can see text in ${languageNames.join(', ')}`);
-    }
   }
 
   // Process landmarks
   if (visionResponse.landmarkAnnotations && visionResponse.landmarkAnnotations.length > 0) {
-    const landmark = visionResponse.landmarkAnnotations[0];
-    if (landmark.score > 0.5) {
-      clues.push(`This looks like it might be near ${landmark.description}`);
-    }
+    detectedFeatures.landmarks = visionResponse.landmarkAnnotations.filter((landmark: any) => landmark.score > 0.4);
   }
 
   // Process labels for environmental clues
   if (visionResponse.labelAnnotations && visionResponse.labelAnnotations.length > 0) {
-    const relevantLabels = visionResponse.labelAnnotations
+    detectedFeatures.labels = visionResponse.labelAnnotations
       .filter((label: any) => label.score > 0.7)
-      .slice(0, 3)
+      .slice(0, 5)
       .map((label: any) => label.description.toLowerCase());
-
-    // Look for driving side clues
-    if (relevantLabels.some((label: string) => label.includes('car') || label.includes('vehicle') || label.includes('road'))) {
-      clues.push("I can see vehicles and roads");
-    }
-
-    // Look for architectural clues
-    const architecturalTerms = ['building', 'architecture', 'house', 'structure'];
-    if (relevantLabels.some((label: string) => architecturalTerms.some(term => label.includes(term)))) {
-      clues.push("The architecture might give away the region");
-    }
-
-    // Look for vegetation clues
-    const vegetationTerms = ['tree', 'plant', 'vegetation', 'palm', 'pine'];
-    if (relevantLabels.some((label: string) => vegetationTerms.some(term => label.includes(term)))) {
-      clues.push("The vegetation suggests a specific climate zone");
-    }
   }
 
   // Process logos for commercial clues
   if (visionResponse.logoAnnotations && visionResponse.logoAnnotations.length > 0) {
-    const logos = visionResponse.logoAnnotations
-      .filter((logo: any) => logo.score > 0.6)
-      .slice(0, 2);
-    
-    if (logos.length > 0) {
-      clues.push("I can spot some commercial signage that might indicate the region");
-    }
+    detectedFeatures.logos = visionResponse.logoAnnotations.filter((logo: any) => logo.score > 0.6);
   }
 
-  // Generate final clue
-  if (clues.length === 0) {
-    return "I'm analyzing the visual clues, but this location is quite challenging to identify from the imagery alone. Look for architectural styles, vegetation, and any visible text or signs!";
-  }
+  // Generate regional guesses based on detected features
+  return generateRegionalGuesses(detectedFeatures);
+};
 
-  const clueText = clues.join(', ') + '. ';
-  const suggestions = [
-    "Look for license plates, road signs, or architectural styles",
-    "Pay attention to the driving side and road markings",
-    "Check for any visible text or commercial signage",
-    "Notice the vegetation and landscape features"
-  ];
-
-  const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+const generateRegionalGuesses = (features: any): string => {
+  const guesses: Array<{ region: string; confidence: 'HIGH' | 'MEDIUM' | 'LOW'; reasoning: string }> = [];
   
-  return `${clueText}${randomSuggestion}!`;
+  // Language-based guesses (highest confidence)
+  if (features.languages.size > 0) {
+    const languages = Array.from(features.languages) as string[];
+    
+    languages.forEach((lang: string) => {
+      const languageRegions: { [key: string]: { regions: string[], confidence: 'HIGH' | 'MEDIUM' } } = {
+        'ru': { regions: ['Russia', 'Eastern Europe (Ukraine, Belarus)'], confidence: 'HIGH' },
+        'zh': { regions: ['China', 'Taiwan'], confidence: 'HIGH' },
+        'ja': { regions: ['Japan'], confidence: 'HIGH' },
+        'ko': { regions: ['South Korea'], confidence: 'HIGH' },
+        'ar': { regions: ['Middle East', 'North Africa'], confidence: 'HIGH' },
+        'hi': { regions: ['India'], confidence: 'HIGH' },
+        'th': { regions: ['Thailand'], confidence: 'HIGH' },
+        'de': { regions: ['Germany', 'Austria', 'Switzerland'], confidence: 'MEDIUM' },
+        'fr': { regions: ['France', 'Belgium', 'Switzerland'], confidence: 'MEDIUM' },
+        'es': { regions: ['Spain', 'Latin America'], confidence: 'MEDIUM' },
+        'pt': { regions: ['Portugal', 'Brazil'], confidence: 'MEDIUM' },
+        'it': { regions: ['Italy'], confidence: 'MEDIUM' },
+        'en': { regions: ['English-speaking countries'], confidence: 'LOW' }
+      };
+      
+      if (languageRegions[lang]) {
+        const { regions, confidence } = languageRegions[lang];
+        regions.forEach(region => {
+          guesses.push({
+            region,
+            confidence,
+            reasoning: `Cyrillic/Asian/Arabic script detected` // Will be refined below
+          });
+        });
+      }
+    });
+  }
+  
+  // Landmark-based guesses (very high confidence)
+  if (features.landmarks.length > 0) {
+    features.landmarks.slice(0, 2).forEach((landmark: any) => {
+      guesses.push({
+        region: `Near ${landmark.description}`,
+        confidence: 'HIGH',
+        reasoning: 'Landmark recognition'
+      });
+    });
+  }
+  
+  // Architecture and environment-based guesses (lower confidence)
+  const architecturalClues = features.labels.filter((label: string) => 
+    ['building', 'architecture', 'house', 'structure', 'roof', 'window'].some(term => label.includes(term))
+  );
+  
+  const vegetationClues = features.labels.filter((label: string) => 
+    ['tree', 'plant', 'vegetation', 'palm', 'pine', 'forest', 'grass'].some(term => label.includes(term))
+  );
+  
+  // Palm trees suggest tropical/subtropical regions
+  if (features.labels.some((label: string) => label.includes('palm'))) {
+    guesses.push({
+      region: 'Tropical/subtropical region (Southern US, Mediterranean, Southeast Asia)',
+      confidence: 'MEDIUM',
+      reasoning: 'Palm trees visible'
+    });
+  }
+  
+  // Pine/coniferous trees suggest northern regions
+  if (features.labels.some((label: string) => ['pine', 'conifer', 'evergreen'].some(term => label.includes(term)))) {
+    guesses.push({
+      region: 'Northern regions (Scandinavia, Canada, Northern US, Russia)',
+      confidence: 'MEDIUM',
+      reasoning: 'Coniferous vegetation'
+    });
+  }
+  
+  // Road and vehicle analysis
+  const vehicleClues = features.labels.filter((label: string) => 
+    ['car', 'vehicle', 'truck', 'road', 'street'].some(term => label.includes(term))
+  );
+  
+  if (vehicleClues.length > 0) {
+    guesses.push({
+      region: 'Developed country with modern infrastructure',
+      confidence: 'LOW',
+      reasoning: 'Modern vehicles and roads visible'
+    });
+  }
+  
+  // Logo-based guesses
+  if (features.logos.length > 0) {
+    guesses.push({
+      region: 'Commercial area in developed country',
+      confidence: 'LOW',
+      reasoning: 'Commercial signage detected'
+    });
+  }
+  
+  // Sort by confidence and take top 3
+  const confidenceOrder = { 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
+  const sortedGuesses = guesses
+    .sort((a, b) => confidenceOrder[b.confidence] - confidenceOrder[a.confidence])
+    .slice(0, 3);
+  
+  // Generate the clue text
+  if (sortedGuesses.length === 0) {
+    return "🤖 I'm having trouble identifying specific regional clues from this view. Look for text, license plates, architectural styles, or vegetation that might indicate the location!";
+  }
+  
+  let clueText = "🤖 Based on what I can see:\n\n";
+  
+  sortedGuesses.forEach((guess, index) => {
+    const confidenceEmoji = guess.confidence === 'HIGH' ? '🎯' : guess.confidence === 'MEDIUM' ? '🎪' : '🤔';
+    clueText += `${confidenceEmoji} **${guess.confidence} CONFIDENCE**: This could be ${guess.region}\n`;
+  });
+  
+  // Add specific observations
+  const observations: string[] = [];
+  
+  if (features.languages.size > 0) {
+    const languageNames = Array.from(features.languages).map((lang: string) => {
+      const langMap: { [key: string]: string } = {
+        'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German',
+        'it': 'Italian', 'pt': 'Portuguese', 'ru': 'Russian', 'ja': 'Japanese',
+        'ko': 'Korean', 'zh': 'Chinese', 'ar': 'Arabic', 'hi': 'Hindi', 'th': 'Thai'
+      };
+      return langMap[lang as string] || lang;
+    });
+    observations.push(`Text detected in: ${languageNames.join(', ')}`);
+  }
+  
+  if (features.landmarks.length > 0) {
+    observations.push(`Landmarks: ${features.landmarks.map((l: any) => l.description).join(', ')}`);
+  }
+  
+  if (observations.length > 0) {
+    clueText += `\n📋 **Key observations**: ${observations.join(' • ')}`;
+  }
+
+  return clueText;
 };
